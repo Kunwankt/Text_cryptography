@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Encrypt - Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-success"><i class="fas fa-lock me-2"></i>Encrypt Text</h2>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card bg-dark border border-secondary glass-card mb-4">
+            <div class="card-header border-secondary">
+                <ul class="nav nav-pills card-header-pills" id="encryptTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="aes-tab" data-bs-toggle="pill" data-bs-target="#aes" type="button">
+                            <i class="fas fa-key me-1"></i>AES-256
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="des-tab" data-bs-toggle="pill" data-bs-target="#des" type="button">
+                            <i class="fas fa-key me-1"></i>DES <span class="badge bg-warning text-dark ms-1">Unsafe</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="rsa-tab" data-bs-toggle="pill" data-bs-target="#rsa" type="button">
+                            <i class="fas fa-key me-1"></i>RSA
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="encryptTabsContent">
+                    <div class="tab-pane fade show active" id="aes" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label">Plaintext</label>
+                            <textarea id="aesPlaintext" class="form-control bg-dark text-light border-secondary" rows="5" placeholder="Enter text to encrypt..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Key (Base64)</label>
+                            <div class="input-group">
+                                <input type="text" id="aesKey" class="form-control bg-dark text-light border-secondary" placeholder="AES-256 key">
+                                <button class="btn btn-success" onclick="generateAESKey()">
+                                    <i class="fas fa-sync-alt"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="encryptAES()">
+                            <i class="fas fa-lock me-2"></i>Encrypt
+                        </button>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">Ciphertext (Base64)</label>
+                            <textarea id="aesCiphertext" class="form-control bg-dark text-light border-secondary" rows="5" readonly></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-success" onclick="copyToClipboard('aesCiphertext')">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearFields(['aesPlaintext', 'aesKey', 'aesCiphertext'])">
+                                <i class="fas fa-eraser me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="des" role="tabpanel">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> DES is considered insecure and is included for educational purposes only. Use AES-256 for secure encryption.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Plaintext</label>
+                            <textarea id="desPlaintext" class="form-control bg-dark text-light border-secondary" rows="5" placeholder="Enter text to encrypt..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Key (Base64)</label>
+                            <div class="input-group">
+                                <input type="text" id="desKey" class="form-control bg-dark text-light border-secondary" placeholder="DES key">
+                                <button class="btn btn-success" onclick="generateDESKey()">
+                                    <i class="fas fa-sync-alt"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="encryptDES()">
+                            <i class="fas fa-lock me-2"></i>Encrypt
+                        </button>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">Ciphertext (Base64)</label>
+                            <textarea id="desCiphertext" class="form-control bg-dark text-light border-secondary" rows="5" readonly></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-success" onclick="copyToClipboard('desCiphertext')">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearFields(['desPlaintext', 'desKey', 'desCiphertext'])">
+                                <i class="fas fa-eraser me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="rsa" role="tabpanel">
+                        <div class="mb-3">
+                            <button class="btn btn-outline-success mb-3" onclick="generateRSAKeys()">
+                                <i class="fas fa-key me-1"></i>Generate RSA Key Pair
+                            </button>
+                        </div>
+                        <div class="alert alert-info border-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong> Save your Private Key somewhere safe! Without it, you will NOT be able to decrypt your messages.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-success"><i class="fas fa-unlock me-1"></i>Public Key (PEM) - Share this to encrypt</label>
+                            <textarea id="rsaPublicKey" class="form-control bg-dark text-light border-secondary" rows="4" placeholder="Paste public key here, or generate/upload..."></textarea>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="copyToClipboard('rsaPublicKey')">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="downloadKey('rsaPublicKey', 'rsa_public_key.pem')">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="uploadKey('rsaPublicKey')">
+                                    <i class="fas fa-upload me-1"></i>Upload PEM
+                                </button>
+                                <input type="file" id="rsaPublicKey_file" accept=".pem,.key,.txt" style="display:none;" onchange="handleFileUpload(event, 'rsaPublicKey')">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-danger"><i class="fas fa-lock me-1"></i>Private Key (PEM) - KEEP SECRET!</label>
+                            <textarea id="rsaPrivateKey" class="form-control bg-dark text-light border-secondary border-danger" rows="7" placeholder="Your private key will appear here after generating, or upload a PEM file..."></textarea>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-danger me-2" onclick="copyToClipboard('rsaPrivateKey')">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="downloadKey('rsaPrivateKey', 'rsa_private_key.pem')">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="uploadKey('rsaPrivateKey')">
+                                    <i class="fas fa-upload me-1"></i>Upload PEM
+                                </button>
+                                <input type="file" id="rsaPrivateKey_file" accept=".pem,.key,.txt" style="display:none;" onchange="handleFileUpload(event, 'rsaPrivateKey')">
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">Plaintext</label>
+                            <textarea id="rsaPlaintext" class="form-control bg-dark text-light border-secondary" rows="4" placeholder="Enter text to encrypt (max ~200 chars)..."></textarea>
+                        </div>
+                        <button class="btn btn-success" onclick="encryptRSA()">
+                            <i class="fas fa-lock me-2"></i>Encrypt
+                        </button>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">Ciphertext (Base64)</label>
+                            <textarea id="rsaCiphertext" class="form-control bg-dark text-light border-secondary" rows="4" readonly></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-success" onclick="copyToClipboard('rsaCiphertext')">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearFields(['rsaPlaintext', 'rsaCiphertext'])">
+                                <i class="fas fa-eraser me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

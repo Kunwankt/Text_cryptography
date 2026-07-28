@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Education - Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-success"><i class="fas fa-book me-2"></i>Learn Cryptography</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-lock me-2"></i>AES (Advanced Encryption Standard)</h5>
+            </div>
+            <div class="card-body">
+                <p>AES is a symmetric encryption algorithm established by NIST in 2001. It uses 128-bit blocks and key sizes of 128, 192, or 256 bits. AES-256 is considered highly secure and is widely used.</p>
+                <ul class="text-muted">
+                    <li>Key Size: 256 bits</li>
+                    <li>Block Size: 128 bits</li>
+                    <li>Security: Very High</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>DES (Data Encryption Standard)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    DES is obsolete and insecure. It uses a 56-bit key which is vulnerable to brute-force attacks. Included here for educational purposes only.
+                </p>
+                <ul class="text-muted">
+                    <li>Key Size: 56 bits</li>
+                    <li>Block Size: 64 bits</li>
+                    <li>Security: Very Low</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-header border-secondary">
+        <h5 class="mb-0"><i class="fas fa-unlock-keyhole me-2"></i>RSA (Rivest-Shamir-Adleman)</h5>
+    </div>
+    <div class="card-body">
+        <p>RSA is an asymmetric algorithm that uses public/private key pairs. It's commonly used for key exchange and digital signatures.</p>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <h6 class="text-success"><i class="fas fa-user-check me-2"></i>Public Key</h6>
+                <p class="text-muted">Used for encryption; can be shared publicly.</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-danger"><i class="fas fa-user-shield me-2"></i>Private Key</h6>
+                <p class="text-muted">Used for decryption; must be kept secret.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border border-secondary glass-card">
+    <div class="card-header border-secondary">
+        <h5 class="mb-0"><i class="fas fa-star me-2"></i>Security Best Practices</h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-dark text-light border-secondary">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Use AES-256 for encrypting sensitive data
+            </li>
+            <li class="list-group-item bg-dark text-light border-secondary">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Never reuse keys; generate new keys for each session
+            </li>
+            <li class="list-group-item bg-dark text-light border-secondary">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Use HTTPS for transmitting encrypted data
+            </li>
+            <li class="list-group-item bg-dark text-light border-secondary">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Store private keys securely (e.g., hardware security modules)
+            </li>
+            <li class="list-group-item bg-dark text-light border-secondary">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Use strong passwords and consider password managers
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

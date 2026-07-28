@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-success"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card">
+            <div class="card-body">
+                <h6 class="text-muted">Security Tools</h6>
+                <h3 class="text-success"><i class="fas fa-tools me-2"></i>Tools</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card">
+            <div class="card-body">
+                <h6 class="text-muted">Recent Activity</h6>
+                <h3 class="text-success"><i class="fas fa-history me-2"></i>{{ history|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card">
+            <div class="card-body">
+                <h6 class="text-muted">Performance Last Run</h6>
+                <h3 class="text-success">
+                    <i class="fas fa-stopwatch me-2"></i>
+                    <span id="perfLastRunSummary">—</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-hashtag me-2"></i>Hash Generator & Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <textarea id="hashInput" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Enter text to hash..."></textarea>
+                </div>
+                <div class="btn-group mb-3 w-100">
+                    <button id="hashBtnSha256" class="btn btn-outline-success" onclick="generateHash('sha256')">
+                        <i class="fas fa-hashtag me-1"></i>SHA-256
+                    </button>
+                    <button id="hashBtnSha512" class="btn btn-outline-success" onclick="generateHash('sha512')">
+                        <i class="fas fa-hashtag me-1"></i>SHA-512
+                    </button>
+                    <button id="hashBtnMd5" class="btn btn-outline-warning" onclick="generateHash('md5')">
+                        <i class="fas fa-hashtag me-1"></i>MD5 <span class="badge bg-warning text-dark ms-1">Educational</span>
+                    </button>
+                </div>
+                <button class="btn btn-success mb-3 w-100" onclick="generateAllHashes()">
+                    <i class="fas fa-bolt me-2"></i>Generate & Compare All Hashes
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Selected Hash Result:</label>
+                    <div class="input-group">
+                        <input type="text" id="hashOutput" class="form-control bg-dark text-light border-secondary" readonly placeholder="Click a hash button above...">
+                        <button class="btn btn-outline-success" onclick="copyToClipboard('hashOutput')" title="Copy result">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="border-secondary">
+                <h6 class="text-success mb-3"><i class="fas fa-scale-balanced me-2"></i>Hash Comparison</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-hover mb-0">
+                        <thead>
+                            <tr class="border-secondary">
+                                <th style="width: 110px;">Algorithm</th>
+                                <th>Hash Value</th>
+                                <th style="width: 85px;">Bits</th>
+                                <th style="width: 55px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="rowSha256">
+                                <td><span class="badge bg-success fs-6">SHA-256</span></td>
+                                <td><code id="compareSha256" class="text-success small">—</code></td>
+                                <td class="text-muted">256</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success border-0" onclick="copyTextById('compareSha256')" title="Copy SHA-256">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr id="rowSha512">
+                                <td><span class="badge bg-success fs-6">SHA-512</span></td>
+                                <td><code id="compareSha512" class="text-success small">—</code></td>
+                                <td class="text-muted">512</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success border-0" onclick="copyTextById('compareSha512')" title="Copy SHA-512">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr id="rowMd5">
+                                <td><span class="badge bg-warning text-dark fs-6">MD5</span></td>
+                                <td><code id="compareMd5" class="text-warning small">—</code></td>
+                                <td class="text-muted">128</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-warning border-0" onclick="copyTextById('compareMd5')" title="Copy MD5">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Password Generator & Strength Checker</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" id="passwordOutput" class="form-control bg-dark text-light border-secondary" placeholder="Generated password">
+                        <button class="btn btn-success" onclick="generatePassword()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Check Password Strength:</label>
+                    <input type="text" id="strengthInput" class="form-control bg-dark text-light border-secondary" oninput="checkPasswordStrength()">
+                </div>
+                <div class="mb-3">
+                    <div class="progress" style="height: 25px;">
+                        <div id="strengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div id="strengthText" class="text-muted mt-1"></div>
+                </div>
+                <button class="btn btn-sm btn-outline-success" onclick="copyToClipboard('passwordOutput')">
+                    <i class="fas fa-copy me-1"></i>Copy Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Performance Comparison</h5>
+        <button id="perfRunBtn" class="btn btn-sm btn-success" onclick="runPerformanceTest()">
+            <i id="perfRunIcon" class="fas fa-chart-line me-1"></i>
+            <span id="perfRunLabel">Run Benchmark Test</span>
+        </button>
+    </div>
+    <div class="card-body">
+        <div id="perfChartWrapper" style="position: relative;">
+            <canvas id="performanceChart"></canvas>
+
+            <div id="perfEmptyState" class="py-5 text-center">
+                <div class="mb-3 text-success" style="font-size: 3.5rem;">
+                    <i class="fas fa-chart-column"></i>
+                </div>
+                <h6 class="text-light mb-2">No benchmark data yet</h6>
+                <p class="text-muted small mb-3">
+                    Click <span class="text-success fw-semibold">"Run Benchmark Test"</span> above to compare
+                    encryption speed, key length, and security level across AES-256, DES, and RSA-2048.
+                </p>
+                <div class="row g-2 justify-content-center small">
+                    <div class="col-auto">
+                        <span class="badge bg-success-subtle border border-success text-success-emphasis rounded-pill px-3 py-2">
+                            <i class="fas fa-gauge-high me-1"></i>AES-256 — Fast · High Security
+                        </span>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge bg-warning-subtle border border-warning text-warning-emphasis rounded-pill px-3 py-2">
+                            <i class="fas fa-gauge me-1"></i>DES — Medium · Very Low Security
+                        </span>
+                    </div>
+                    <div class="col-auto">
+                        <span class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill px-3 py-2">
+                            <i class="fas fa-gauge-simple-low me-1"></i>RSA-2048 — Slow · Very High Security
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="perfResultsTable" class="mt-4 table-responsive d-none">
+            <table class="table table-dark table-sm table-hover mb-0 align-middle">
+                <thead>
+                    <tr class="border-secondary">
+                        <th>Algorithm</th>
+                        <th class="text-end">Encrypt (ms)</th>
+                        <th class="text-end">Decrypt (ms)</th>
+                        <th class="text-center">Key Bits</th>
+                        <th class="text-center">Security</th>
+                        <th class="text-center">Speed</th>
+                    </tr>
+                </thead>
+                <tbody id="perfResultsBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border border-secondary glass-card">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+        <a href="/history" class="btn btn-sm btn-outline-success">View All</a>
+    </div>
+    <div class="card-body">
+        {% if history %}
+        <div class="table-responsive">
+            <table class="table table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Operation</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history[:5] %}
+                    <tr>
+                        <td>{{ item.algorithm }}</td>
+                        <td>{{ item.operation }}</td>
+                        <td>{{ item.timestamp|int|timestamp_to_str }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">No recent activity</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

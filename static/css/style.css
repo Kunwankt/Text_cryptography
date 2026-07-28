@@ -1,0 +1,106 @@
+/* Custom styles for Multi Algorithm Text Encryption System */
+body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+}
+
+.glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(25, 135, 84, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    border-color: rgba(25, 135, 84, 0.6);
+    box-shadow: 0 12px 40px rgba(25, 135, 84, 0.25);
+    transform: translateY(-2px);
+}
+
+.nav-link {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(25, 135, 84, 0.15);
+}
+
+.nav-link.active {
+    background-color: rgba(25, 135, 84, 0.9);
+    color: white !important;
+}
+
+.form-control, .form-select {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(25, 135, 84, 0.35) !important;
+    color: #f8fafc !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: rgba(15, 23, 42, 0.85) !important;
+    border-color: rgba(25, 135, 84, 0.9) !important;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #15803d 0%, #14532d 100%);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-outline-success {
+    border-color: rgba(25, 135, 84, 0.8);
+    color: #22c55e;
+}
+
+.btn-outline-success:hover {
+    background-color: rgba(25, 135, 84, 0.2);
+    border-color: rgba(25, 135, 84, 1);
+    color: #4ade80;
+}
+
+.toast {
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(25, 135, 84, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.progress {
+    background-color: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.tab-content {
+    padding-top: 1rem;
+}
+
+.toast-container {
+    z-index: 1080 !important;
+}
+
+.toast {
+    min-width: 320px !important;
+    max-width: 100% !important;
+    animation: slideInRight 0.35s ease-out !important;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+

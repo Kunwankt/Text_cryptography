@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}History - Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-success"><i class="fas fa-history me-2"></i>Encryption History</h2>
+
+<div class="card bg-dark border border-secondary glass-card">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Activity Log</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-success" onclick="exportHistory()">
+                <i class="fas fa-download me-1"></i>Export CSV
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="clearHistory()">
+                <i class="fas fa-trash me-1"></i>Clear All
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if history %}
+        <div class="table-responsive">
+            <table class="table table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Algorithm</th>
+                        <th>Operation</th>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.algorithm }}</td>
+                        <td>{{ item.operation }}</td>
+                        <td>{{ item.timestamp|int|timestamp_to_str }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteHistoryEntry({{ item.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-5">No history entries yet. Start encrypting/decrypting!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
