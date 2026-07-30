@@ -1,0 +1,712 @@
+/* Attack Simulator module styles — hacker/terminal theme, matches existing glassmorphism base. */
+
+.attack-header-icon {
+    display: inline-block;
+    animation: headerPulse 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(22, 163, 74, 0.55));
+}
+
+@keyframes headerPulse {
+    0%, 100% { transform: translateY(0); text-shadow: 0 0 10px rgba(22,163,74,.6); }
+    50%      { transform: translateY(-2px); text-shadow: 0 0 18px rgba(22,163,74,.9); }
+}
+
+/* Attack cards ------------------------------------------------------ */
+.attack-card .attack-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: radial-gradient(circle at 30% 30%, rgba(22,163,74,0.35), rgba(22,163,74,0.05));
+    border: 1px solid rgba(22,163,74,0.4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 10px rgba(22,163,74,0.25);
+}
+
+.attack-card .attack-icon {
+    color: #4ade80;
+    font-size: 1.5rem;
+    animation: attackIconFloat 3.2s ease-in-out infinite;
+}
+
+@keyframes attackIconFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-3px) rotate(-3deg); }
+}
+
+.attack-card .launch-attack-btn {
+    letter-spacing: 0.02em;
+}
+
+/* Terminal ---------------------------------------------------------- */
+.terminal-wrap {
+    border: 1px solid rgba(22,163,74,0.35);
+    background:
+        linear-gradient(180deg, rgba(3,7,18,.95) 0%, rgba(6,18,10,.95) 100%);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.5),
+        inset 0 0 30px rgba(22,163,74,0.05);
+    position: relative;
+}
+
+.terminal-wrap::before {
+    /* subtle scanlines */
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.015) 0,
+        rgba(255,255,255,0.015) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    mix-blend-mode: overlay;
+    z-index: 1;
+}
+
+.terminal-header,
+.terminal-footer {
+    position: relative;
+    z-index: 2;
+    background: rgba(8, 22, 13, 0.65);
+}
+
+.dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.35) inset;
+}
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #eab308; }
+.dot-green { background: #22c55e; }
+
+.terminal-body {
+    min-height: 260px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding: 14px 16px;
+    position: relative;
+    z-index: 2;
+    font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.terminal-output {
+    font-family: inherit;
+    color: #d1fae5;
+    font-size: 13.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    text-shadow: 0 0 8px rgba(22,163,74,0.18);
+}
+
+.terminal-output .prompt {
+    color: #4ade80;
+    font-weight: 700;
+    margin-right: 0.45em;
+}
+.terminal-output .prompt.success { color: #22c55e; }
+.terminal-output .prompt.info    { color: #38bdf8; }
+
+.terminal-output .attack-found {
+    color: #fecaca;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: rgba(220, 38, 38, 0.35);
+    padding: 2px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(248, 113, 113, 0.7);
+    text-shadow: 0 0 12px rgba(239, 68, 68, 0.85);
+    animation: foundBlink 0.6s steps(2, start) 5;
+}
+
+@keyframes foundBlink {
+    50% { background: rgba(248, 113, 113, 0.85); color: #fff; box-shadow: 0 0 24px rgba(239, 68, 68, 0.85); }
+}
+
+/* --- Crazy red flash animation when password is 100% cracked --- */
+.terminal-wrap.cracked-flash {
+    animation: crackedRedFlash 1.1s ease-in-out 0s 1 normal both;
+    box-shadow: 0 0 60px rgba(239, 68, 68, 0.9) !important;
+}
+
+.terminal-wrap.cracked-flash .terminal-body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(239, 68, 68, 0.06) 0px,
+            rgba(239, 68, 68, 0.06) 2px,
+            transparent 2px,
+            transparent 4px
+        );
+    animation: crackedScanlineShake 0.12s linear 0s 9;
+}
+
+@keyframes crackedRedFlash {
+    0%   { box-shadow: 0 0 0 rgba(239, 68, 68, 0), inset 0 0 0 rgba(239, 68, 68, 0); transform: translateX(0); border-color: rgba(22,163,74,0.35); }
+    8%   { box-shadow: 0 0 50px rgba(239, 68, 68, 0.95), inset 0 0 40px rgba(239, 68, 68, 0.55); transform: translateX(-6px); border-color: #ef4444; }
+    16%  { transform: translateX(6px); }
+    24%  { transform: translateX(-4px); box-shadow: 0 0 70px rgba(239, 68, 68, 0.95), inset 0 0 50px rgba(239, 68, 68, 0.55); }
+    32%  { transform: translateX(4px); }
+    40%  { transform: translateX(-3px); border-color: #dc2626; }
+    48%  { transform: translateX(3px); }
+    56%  { transform: translateX(-2px); box-shadow: 0 0 60px rgba(239, 68, 68, 0.85), inset 0 0 40px rgba(239, 68, 68, 0.45); }
+    64%  { transform: translateX(2px); }
+    72%  { transform: translateX(-1px); }
+    80%  { transform: translateX(1px); border-color: rgba(239, 68, 68, 0.75); }
+    88%  { transform: translateX(0); box-shadow: 0 0 35px rgba(239, 68, 68, 0.6), inset 0 0 20px rgba(239, 68, 68, 0.3); }
+    100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.45), inset 0 0 10px rgba(239, 68, 68, 0.18); transform: translateX(0); border-color: rgba(239, 68, 68, 0.55); }
+}
+
+@keyframes crackedScanlineShake {
+    0%   { transform: translate(0, 0); opacity: 1; }
+    25%  { transform: translate(-2px, 1px); opacity: 0.7; }
+    50%  { transform: translate(2px, -1px); opacity: 1; }
+    75%  { transform: translate(-1px, 2px); opacity: 0.8; }
+    100% { transform: translate(0, 0); opacity: 1; }
+}
+
+/* Result card red glow for cracked passwords */
+#resultCard.cracked {
+    border-color: rgba(239, 68, 68, 0.55);
+    box-shadow:
+        0 10px 40px rgba(239, 68, 68, 0.35),
+        inset 0 0 30px rgba(239, 68, 68, 0.08);
+    animation: resultCardCrackedPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes resultCardCrackedPulse {
+    0%, 100% { box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3), inset 0 0 30px rgba(239, 68, 68, 0.08); }
+    50%      { box-shadow: 0 10px 60px rgba(239, 68, 68, 0.55), inset 0 0 40px rgba(239, 68, 68, 0.15); }
+}
+
+.terminal-progress .progress-bar {
+    transition: width 120ms linear;
+}
+
+.bg-gradient-to-r {
+    background-image: linear-gradient(90deg, #15803d 0%, #22c55e 50%, #4ade80 100%);
+}
+
+/* Pipeline ---------------------------------------------------------- */
+.pipeline {
+    color: #cbd5e1;
+}
+
+.pipeline-step {
+    display: flex;
+    justify-content: center;
+}
+
+.pipeline-node {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(148,163,184,0.25);
+    background: rgba(30,41,59,0.55);
+    color: #94a3b8;
+    font-size: 0.9rem;
+    transition: all 260ms ease;
+}
+
+.pipeline-step.active .pipeline-node {
+    border-color: rgba(22,163,74,0.95);
+    background: linear-gradient(90deg, rgba(22,163,74,.22), rgba(74,222,128,.15));
+    color: #bbf7d0;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.15), 0 0 20px rgba(22,163,74,.35);
+    transform: translateY(-1px);
+    animation: activePulse 1.6s ease-in-out infinite;
+}
+
+.pipeline-step.done .pipeline-node {
+    border-color: rgba(34,197,94,0.7);
+    background: rgba(34,197,94,0.12);
+    color: #86efac;
+}
+
+@keyframes activePulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(22,163,74,.15), 0 0 18px rgba(22,163,74,.3); }
+    50%      { box-shadow: 0 0 0 5px rgba(22,163,74,.10), 0 0 26px rgba(22,163,74,.55); }
+}
+
+.pipeline-arrow {
+    display: flex;
+    justify-content: center;
+    color: rgba(148,163,184,0.45);
+    font-size: 0.8rem;
+}
+
+/* Score ring -------------------------------------------------------- */
+.score-ring-wrap {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-ring-wrap svg {
+    filter: drop-shadow(0 0 10px rgba(22,163,74,0.35));
+}
+
+.score-ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.countdown-number {
+    color: #22c55e;
+    font-weight: 800;
+    animation: countdownPop 600ms ease-out;
+}
+
+@keyframes countdownPop {
+    from { transform: scale(1.4); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* Lists and tiny tweaks -------------------------------------------- */
+.list-group-item.bg-dark {
+    background-color: rgba(15, 23, 42, 0.45) !important;
+    color: #e2e8f0;
+}
+
+.bg-black-50 {
+    background-color: rgba(0,0,0,0.45) !important;
+}
+
+#countdownCard .card-body {
+    background:
+        radial-gradient(circle at 50% 30%, rgba(22,163,74,.12), transparent 60%);
+}
+
+/* --- Category Report Table (10B per category breakdown) --- */
+#categoryReportTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    background: transparent;
+}
+#categoryReportTable thead th {
+    background: rgba(0, 0, 0, 0.45);
+    color: #bbf7d0;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(22, 163, 74, 0.35);
+    padding: 0.7rem 0.85rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+#categoryReportTable tbody tr {
+    transition: background 220ms ease, transform 180ms ease;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+#categoryReportTable tbody tr:hover {
+    background: rgba(22, 163, 74, 0.07) !important;
+}
+#categoryReportTable tbody tr td {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+    border-top: none;
+    font-size: 0.83rem;
+    color: #e2e8f0;
+}
+/* Row that had a MATCH gets a subtle red gradient + glowing border */
+#categoryReportTable tbody tr.table-danger {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.11), rgba(239, 68, 68, 0.03));
+    border-left: 3px solid rgba(239, 68, 68, 0.85);
+    box-shadow: inset 0 0 22px rgba(239, 68, 68, 0.06);
+}
+#categoryReportTable tbody tr.table-danger:hover {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.06)) !important;
+}
+#categoryReportTable .badge.bg-dark {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    padding: 0.3rem 0.5rem;
+}
+/* Category report header stat counters pulse */
+#totalCats, #totalScanAttempts, #totalMatches {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* --- Download button group tiny polish --- */
+#resultCard .btn-group-sm > .btn {
+    font-size: 0.8rem;
+    letter-spacing: 0.01em;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 575.98px) {
+    .terminal-body { min-height: 220px; max-height: 300px; }
+    .score-ring-wrap { width: 160px; height: 160px; }
+    .score-ring-wrap svg { width: 160px; height: 160px; }
+    #categoryReportTable thead th { font-size: 0.7rem; padding: 0.55rem 0.45rem; }
+    #categoryReportTable tbody tr td { font-size: 0.75rem; padding: 0.55rem 0.45rem; }
+}
+
+/* ============================================================
+   CYBERHOLIC / CYBERPUNK THEME — Attack Simulator HUD
+   ============================================================ */
+
+/* Animated breathing pulse for "attack in progress" badges and skips */
+@keyframes cyberPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.6), 0 0 12px rgba(34, 211, 238, 0.25);
+        text-shadow: 0 0 8px rgba(34, 211, 238, 0.55);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.0), 0 0 22px rgba(34, 211, 238, 0.55);
+        text-shadow: 0 0 14px rgba(34, 211, 238, 0.85);
+    }
+}
+.cyber-pulse { animation: cyberPulse 1.8s ease-in-out infinite; }
+
+/* Green version for success */
+@keyframes cyberPulseGreen {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.55); text-shadow: 0 0 8px rgba(74,222,128,.55); }
+    50%      { box-shadow: 0 0 0 8px rgba(74,222,128,0);  text-shadow: 0 0 16px rgba(74,222,128,.9); }
+}
+
+/* ---- Cyber HUD corner brackets (4 decorative corners) ---- */
+.cyber-hud {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgba(34, 211, 238, 0.25) !important;
+    box-shadow:
+        0 0 24px rgba(34, 211, 238, 0.08),
+        inset 0 0 22px rgba(0, 0, 0, 0.5);
+}
+.cyber-hud-result {
+    border: 1px solid rgba(74, 222, 128, 0.32) !important;
+    box-shadow:
+        0 0 28px rgba(74, 222, 128, 0.09),
+        inset 0 0 26px rgba(0, 0, 0, 0.55);
+    animation: hudBorderGlow 6s ease-in-out infinite;
+}
+@keyframes hudBorderGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(74,222,128,0.07), inset 0 0 22px rgba(0,0,0,0.5); }
+    50%      { box-shadow: 0 0 38px rgba(74,222,128,0.15), inset 0 0 30px rgba(0,0,0,0.6); }
+}
+
+/* 4 corners drawn with pure CSS triangles + edges */
+.cyber-hud > .corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.95;
+}
+.cyber-hud > .corner-tl { top: -1px;    left: -1px;    border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+.cyber-hud > .corner-tr { top: -1px;    right: -1px;   border-top: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+.cyber-hud > .corner-bl { bottom: -1px; left: -1px;    border-bottom: 2px solid #22d3ee; border-left: 2px solid #22d3ee; }
+.cyber-hud > .corner-br { bottom: -1px; right: -1px;   border-bottom: 2px solid #22d3ee; border-right: 2px solid #22d3ee; }
+
+.cyber-hud-result > .corner-result { width: 36px; height: 36px; }
+.cyber-hud-result > .corner-tl.corner-result { border-top-color: #4ade80; border-left-color: #4ade80; }
+.cyber-hud-result > .corner-tr.corner-result { border-top-color: #4ade80; border-right-color: #4ade80; }
+.cyber-hud-result > .corner-bl.corner-result { border-bottom-color: #4ade80; border-left-color: #4ade80; }
+.cyber-hud-result > .corner-br.corner-result { border-bottom-color: #4ade80; border-right-color: #4ade80; }
+
+/* Corner notches (small ticks) */
+.cyber-hud > .corner::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #22d3ee;
+    opacity: 0.7;
+}
+.cyber-hud > .corner-tl::after { top: -2px; left: -2px; }
+.cyber-hud > .corner-tr::after { top: -2px; right: -2px; }
+.cyber-hud > .corner-bl::after { bottom: -2px; left: -2px; }
+.cyber-hud > .corner-br::after { bottom: -2px; right: -2px; }
+.cyber-hud-result > .corner-result::after { background: #4ade80; }
+
+/* ---- Subtle matrix / scan overlay on RESULT CARD ---- */
+.cyber-hud-result .matrix-rain-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.12;
+    mix-blend-mode: screen;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(74, 222, 128, 0) 0px,
+            rgba(74, 222, 128, 0) 2px,
+            rgba(74, 222, 128, 0.08) 3px,
+            rgba(74, 222, 128, 0) 4px
+        ),
+        linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(34, 211, 238, 0.03) 50%, rgba(0, 0, 0, 0) 100%);
+    background-size: 100% 12px, 100% 100%;
+    animation: scanSlide 5.5s linear infinite;
+    overflow: hidden;
+    border-radius: inherit;
+}
+@keyframes scanSlide {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 0 120px, 0 100%; }
+}
+
+/* Rolling CRT scan-line that sweeps the card */
+.cyber-hud-result::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(74,222,128,0.55), transparent);
+    z-index: 2;
+    pointer-events: none;
+    animation: crtScanline 4.2s ease-in-out infinite;
+    border-radius: inherit;
+}
+@keyframes crtScanline {
+    0%   { top: -2%; opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { top: 102%; opacity: 0; }
+}
+
+/* Ensure content is above overlays */
+.cyber-hud-result > .card-header,
+.cyber-hud-result > .card-body { position: relative; z-index: 3; }
+
+/* ---- HUD header gradient (result header) ---- */
+.cyber-hud-header {
+    background:
+        linear-gradient(90deg, rgba(34,211,238,0.12), rgba(74,222,128,0.10) 45%, rgba(168,85,247,0.12)),
+        rgba(0, 0, 0, 0.45);
+    border-bottom: 1px solid rgba(74, 222, 128, 0.28) !important;
+}
+
+/* Stat pills in category header */
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    letter-spacing: 0.03em;
+}
+.stat-pill:hover {
+    border-color: rgba(74, 222, 128, 0.55);
+    background: rgba(74, 222, 128, 0.06);
+    transform: translateY(-1px);
+    transition: all 200ms ease;
+}
+
+/* Download + result buttons — glowing neon hover */
+#resultCard .btn-outline-primary,
+#resultCard .btn-outline-info,
+#resultCard .btn-outline-success,
+#resultCard .btn-outline-secondary {
+    position: relative;
+    overflow: hidden;
+    transition: all 220ms ease;
+    border-width: 1px;
+    backdrop-filter: blur(4px);
+}
+#resultCard .btn-outline-primary {
+    border-color: rgba(56,189,248,0.55);
+    color: #7dd3fc;
+    box-shadow: 0 0 0 rgba(56,189,248,0);
+}
+#resultCard .btn-outline-primary:hover {
+    color: #082f49;
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    border-color: #38bdf8;
+    box-shadow: 0 0 18px rgba(56,189,248,0.55), inset 0 0 10px rgba(255,255,255,0.18);
+    transform: translateY(-1px);
+}
+#resultCard .btn-outline-info {
+    border-color: rgba(168,85,247,0.55);
+    color: #c4b5fd;
+}
+#resultCard .btn-outline-info:hover {
+    color: #1e1b4b;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    border-color: #a855f7;
+    box-shadow: 0 0 18px rgba(168,85,247,0.55), inset 0 0 10px rgba(255,255,255,0.18);
+    transform: translateY(-1px);
+}
+#resultCard .btn-outline-success {
+    border-color: rgba(74,222,128,0.55);
+    color: #86efac;
+}
+#resultCard .btn-outline-success:hover {
+    color: #052e16;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border-color: #4ade80;
+    box-shadow: 0 0 18px rgba(74,222,128,0.55), inset 0 0 10px rgba(255,255,255,0.18);
+    transform: translateY(-1px);
+}
+#resultCard .btn-outline-secondary:hover {
+    box-shadow: 0 0 12px rgba(148,163,184,0.35), inset 0 0 8px rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+}
+
+/* Ripple click-effect on result buttons */
+#resultCard .btn:not([disabled]):active {
+    transform: translateY(0) scale(0.97);
+    transition: transform 40ms linear;
+}
+
+/* ---- Category table row types (new semantic classes) ---- */
+#categoryReportTable tbody tr.row-match {
+    background: linear-gradient(90deg, rgba(239,68,68,0.13), rgba(239,68,68,0.04) 70%, rgba(239,68,68,0.0));
+    border-left: 3px solid rgba(239,68,68,0.88);
+    box-shadow: inset 0 0 26px rgba(239,68,68,0.08);
+    animation: matchPulse 2.6s ease-in-out infinite;
+}
+#categoryReportTable tbody tr.row-match:hover {
+    background: linear-gradient(90deg, rgba(239,68,68,0.22), rgba(239,68,68,0.08) 70%, rgba(239,68,68,0.0));
+}
+@keyframes matchPulse {
+    0%, 100% { box-shadow: inset 0 0 22px rgba(239,68,68,0.06); }
+    50%      { box-shadow: inset 0 0 32px rgba(239,68,68,0.14); }
+}
+
+#categoryReportTable tbody tr.row-skipped {
+    background: linear-gradient(90deg, rgba(245,158,11,0.09), rgba(245,158,11,0.02) 70%, rgba(245,158,11,0));
+    border-left: 3px solid rgba(245,158,11,0.72);
+    opacity: 0.88;
+}
+#categoryReportTable tbody tr.row-skipped:hover {
+    background: linear-gradient(90deg, rgba(245,158,11,0.16), rgba(245,158,11,0.04) 70%, rgba(245,158,11,0));
+    opacity: 1;
+}
+
+#categoryReportTable tbody tr.row-no-match {
+    border-left: 1px solid rgba(148,163,184,0.15);
+    background: rgba(15, 23, 42, 0.35);
+}
+
+/* Badges inside rows */
+#categoryReportTable .prio-badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    border-radius: 3px !important;
+    box-shadow: 0 0 10px rgba(74,222,128,0.28);
+    background: rgba(0, 0, 0, 0.55) !important;
+    padding: 0.32rem 0.55rem;
+}
+#categoryReportTable .row-status-badge {
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    letter-spacing: 0.05em;
+    padding: 0.32rem 0.55rem;
+    border-radius: 3px;
+}
+
+/* Tiny "ANALYSIS READY" badge in result header — special neon pulse */
+#resultCard .cyber-pulse {
+    letter-spacing: 0.18em;
+    font-size: 0.65rem;
+    border-radius: 2px;
+    padding: 0.35rem 0.6rem;
+    animation-name: cyberPulseGreen;
+}
+
+/* Fine grid backdrop to category card (subtle CRT display feel) */
+#resultCard .card-body > .row > .col-12 > .card {
+    background:
+        linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px) 0 0 / 100% 14px,
+        linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px) 0 0 / 14px 100%,
+        rgba(0, 0, 0, 0.35);
+}
+
+/* Start button extra cyber-glow during hover */
+#startAttackBtn {
+    position: relative;
+    overflow: hidden;
+    transition: all 220ms ease;
+    letter-spacing: 0.18em;
+}
+#startAttackBtn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -120%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+    transform: skewX(-25deg);
+    transition: left 650ms ease;
+}
+#startAttackBtn:hover::before { left: 140%; }
+#startAttackBtn:hover {
+    box-shadow: 0 0 28px rgba(22,163,74,0.75), inset 0 0 16px rgba(134,239,172,0.25) !important;
+    transform: translateY(-1px);
+}
+#startAttackBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Cancel button danger glow */
+#cancelAttackBtn,
+#cancelAttackBtnMobile {
+    letter-spacing: 0.12em;
+    box-shadow: 0 0 10px rgba(239,68,68,0.4), inset 0 0 8px rgba(248,113,113,0.15);
+    animation: cancelPulse 1.3s ease-in-out infinite;
+}
+@keyframes cancelPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.40), inset 0 0 8px rgba(248,113,113,0.15); }
+    50%      { box-shadow: 0 0 22px rgba(239,68,68,0.75), inset 0 0 14px rgba(248,113,113,0.28); }
+}
+
+/* Mode badge (IDLE / ATTACKING / CRACKED / COMPLETE / CANCELLED) */
+#simModeBadge {
+    letter-spacing: 0.18em;
+    font-size: 0.65rem;
+    border-radius: 2px;
+}
+
+/* CRT monitor effect on terminal body */
+.terminal-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(74,222,128,0.05) 3px
+    );
+    opacity: 0.8;
+    border-radius: inherit;
+    z-index: 2;
+    mix-blend-mode: multiply;
+}
+.terminal-body { position: relative; z-index: 3; }
+
+/* Mobile-specific shrink for cyber additions */
+@media (max-width: 575.98px) {
+    .cyber-hud > .corner { width: 18px; height: 18px; }
+    .cyber-hud-result > .corner-result { width: 22px; height: 22px; }
+    .stat-pill { font-size: 0.7rem; padding: 0.22rem 0.45rem; }
+    #simModeBadge { font-size: 0.55rem; letter-spacing: 0.1em; }
+    #resultCard .btn-group-sm > .btn, #resultCard .btn-sm { font-size: 0.72rem; }
+}

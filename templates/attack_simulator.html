@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block title %}Attack Simulator - Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<link href="{{ url_for('static', filename='css/attack_simulator.css') }}" rel="stylesheet">
+
+<div class="mb-4 text-center text-md-start">
+    <h2 class="mb-1 text-success">
+        <i class="fas fa-user-secret me-2 attack-header-icon"></i>Attack Simulator
+    </h2>
+    <p class="text-light opacity-75 mb-0">
+        Learn how attackers crack weak passwords and why secure passwords matter.
+    </p>
+</div>
+
+<!-- Leaderboard / Local Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="text-light small mb-2"><i class="fas fa-tally me-1 text-success"></i>Total Simulations</h6>
+                <h3 class="text-success mb-0"><span id="statTotal">{{ initial_stats.total_simulations }}</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="text-light small mb-2"><i class="fas fa-shield me-1 text-info"></i>Strong Passwords</h6>
+                <h3 class="text-info mb-0"><span id="statStrong">{{ initial_stats.strong_passwords_tested }}</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="text-light small mb-2"><i class="fas fa-triangle-exclamation me-1 text-danger"></i>Weak Passwords</h6>
+                <h3 class="text-danger mb-0"><span id="statWeak">{{ initial_stats.weak_passwords_tested }}</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="text-light small mb-2"><i class="fas fa-chart-line me-1 text-warning"></i>Avg Security Score</h6>
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <h3 class="text-warning mb-0"><span id="statAvg">{{ initial_stats.average_security_score }}</span> / 100</h3>
+                    <button class="btn btn-sm btn-outline-success" id="quickReportBtn" title="Open the last attack report (if any)" style="display:none;">
+                        <i class="fas fa-file-lines me-1"></i>Last Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attack Cards -->
+<h5 class="mb-3 text-success"><i class="fas fa-layer-group me-2"></i>Attack Types</h5>
+<div class="row g-4 mb-4">
+    {% for atk in attack_types %}
+    <div class="col-lg-3 col-md-6">
+        <div class="card bg-dark border border-secondary glass-card attack-card h-100" data-attack="{{ atk.id }}">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3 d-flex align-items-center">
+                    <div class="attack-icon-wrap flex-shrink-0">
+                        <i class="fas {{ atk.icon }} attack-icon"></i>
+                    </div>
+                    <h5 class="card-title text-light mb-0 ms-3">{{ atk.name }} Attack</h5>
+                </div>
+                <p class="text-light opacity-75 small flex-grow-1">{{ atk.description }}</p>
+                <button class="btn btn-outline-success w-100 launch-attack-btn"
+                        data-attack-id="{{ atk.id }}"
+                        data-attack-name="{{ atk.name }}">
+                    <i class="fas fa-rocket me-1"></i>Launch Simulation
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Simulation panel -->
+<div class="card bg-dark border border-secondary glass-card cyber-hud mb-4" id="simulationCard" style="display: none;">
+    <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+    <div class="card-header border-secondary d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <h5 class="mb-0">
+            <i class="fas fa-terminal me-1 text-success"></i>
+            <span id="simTitle">Simulation Panel</span>
+            <span class="ms-2 small badge bg-dark border border-success-subtle text-success opacity-75" id="simModeBadge">IDLE</span>
+        </h5>
+        <div class="d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-success" id="toggleReportBtn" title="Show / hide the last report" style="display:none;">
+                <i class="fas fa-file-lines me-1"></i>Report
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger d-none" id="cancelAttackBtn" title="Abort the currently running attack simulation">
+                <i class="fas fa-stop me-1"></i>Cancel Search
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="closeSimulationBtn">
+                <i class="fas fa-xmark me-1"></i>Close
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <!-- Left: Input + Pipeline -->
+            <div class="col-lg-6 d-flex flex-column gap-3">
+                <!-- Input form -->
+                <div class="card bg-dark border border-success-subtle glass-card">
+                    <div class="card-body">
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-keyboard me-1"></i>Enter a Password to Attack
+                        </h6>
+                        <label class="form-label text-light small">Password</label>
+                        <div class="input-group input-group-lg mb-2">
+                            <input type="text" id="attackPasswordInput" class="form-control bg-black-50 text-light border-secondary"
+                                   placeholder="Try: 123456 · Ankit123 · A9#jPk!Lx2@M" autocomplete="off">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePwVisibility"
+                                    title="Show / hide password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-danger example-pw" data-value="123456">
+                                🔥 Try "123456"
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning example-pw" data-value="Ankit123">
+                                ⚠ Try "Ankit123"
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success example-pw" data-value="A9#jPk!Lx2@M">
+                                ✅ Try strong
+                            </button>
+                        </div>
+
+                        <!-- Dictionary Attack Hints Input -->
+                        <div class="d-none" id="hintsWrap">
+                            <hr class="border-secondary opacity-50 my-3">
+                            <h6 class="text-warning mb-2">
+                                <i class="fas fa-lightbulb me-1"></i>Personalized Hints
+                                <span class="small text-info fw-normal ms-1">(Dictionary Attack only)</span>
+                            </h6>
+                            <p class="small text-light opacity-75 mb-2">
+                                Enter comma-separated details an attacker might know about you.
+                                The simulator will try a personalized wordlist built from these
+                                (Name, DOB, BirthPlace, Address, etc.) with realistic mutations.
+                            </p>
+                            <label class="form-label text-light small">
+                                Hints <span class="text-light opacity-50 fw-normal">(comma-separated)</span>
+                            </label>
+                            <textarea id="hintsInput"
+                                      rows="3"
+                                      class="form-control bg-black-50 text-light border-secondary"
+                                      placeholder="e.g. Rohit Sharma, 15/08/1995, Delhi, Malviya Nagar, 98765, @gmail"></textarea>
+                            <div class="d-flex flex-wrap align-items-center gap-2 justify-content-between mt-2 mb-2">
+                                <div class="d-flex flex-wrap gap-1" id="hintsChipsWrap">
+                                    <!-- Chips populated live by JS -->
+                                </div>
+                                <div class="small text-light opacity-75 ms-auto">
+                                    <span id="hintsCount">0</span> / 12 hints
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-info hint-preset"
+                                        data-value="Rohit Sharma, 15/08/1995, Delhi, Cricket, Kohli, @2024">
+                                    🇮🇳 Preset: Name + DOB + City
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info hint-preset"
+                                        data-value="Priya, Singh, 01-01-2000, Mumbai, Maharashtra, India123, 1234">
+                                    👩 Preset: Full Name + DOB + Place + Pincode
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="clearHintsBtn">
+                                    <i class="fas fa-trash-can me-1"></i>Clear
+                                </button>
+                            </div>
+                            <div class="small text-warning opacity-90 mb-2">
+                                <i class="fas fa-circle-exclamation me-1"></i>
+                                Tip: To see the personalized-crack effect, test a password that
+                                <strong>actually uses one of your hints</strong> (e.g.
+                                <code class="text-warning">Rohit1995!</code> with the first preset above).
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-lg btn-success w-100" id="startAttackBtn" style="box-shadow: 0 0 18px rgba(22,163,74,0.45), inset 0 0 12px rgba(74,222,128,0.15);">
+                                <i class="fas fa-bolt me-1"></i>
+                                <span id="startBtnLabel">START ATTACK</span>
+                            </button>
+                            <button type="button" class="btn btn-lg btn-outline-danger d-none" id="cancelAttackBtnMobile" title="Stop attack search">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline visualization -->
+                <div class="card bg-dark border border-secondary glass-card flex-grow-1">
+                    <div class="card-body">
+                        <h6 class="text-success mb-3"><i class="fas fa-diagram-project me-1"></i>Attack Pipeline</h6>
+                        <div class="pipeline d-flex flex-column gap-2" id="attackPipeline">
+                            <div class="pipeline-step" data-step="1">
+                                <div class="pipeline-node"><i class="fas fa-key me-1"></i>Password</div>
+                            </div>
+                            <div class="pipeline-arrow"><i class="fas fa-chevron-down"></i></div>
+                            <div class="pipeline-step" data-step="2">
+                                <div class="pipeline-node"><i class="fas fa-crosshairs me-1"></i>Attack Selected</div>
+                            </div>
+                            <div class="pipeline-arrow"><i class="fas fa-chevron-down"></i></div>
+                            <div class="pipeline-step" data-step="3">
+                                <div class="pipeline-node"><i class="fas fa-gear me-1"></i>Simulation Running</div>
+                            </div>
+                            <div class="pipeline-arrow"><i class="fas fa-chevron-down"></i></div>
+                            <div class="pipeline-step" data-step="4">
+                                <div class="pipeline-node"><i class="fas fa-magnifying-glass-chart me-1"></i>Analysis</div>
+                            </div>
+                            <div class="pipeline-arrow"><i class="fas fa-chevron-down"></i></div>
+                            <div class="pipeline-step" data-step="5">
+                                <div class="pipeline-node"><i class="fas fa-flag-checkered me-1"></i>Final Result</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Terminal + Progress -->
+            <div class="col-lg-6 d-flex flex-column gap-3">
+                <!-- Animated terminal -->
+                <div class="terminal-wrap glass-card">
+                    <div class="terminal-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom border-secondary">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                            <span class="ms-3 small text-light opacity-75">attack-sim.sh &mdash; <span id="termAttackLabel">Attack Module</span></span>
+                        </div>
+                        <span class="badge bg-success-subtle border border-success text-success-emphasis">
+                            <i class="fas fa-spinner fa-spin me-1 attackSpinner d-none"></i>
+                            <i class="fas fa-circle-check me-1 attackStatusIconIdle"></i>
+                            <span id="attackStatusText">Idle</span>
+                        </span>
+                    </div>
+                    <div class="terminal-body" id="terminalBody">
+                        <pre class="terminal-output mb-0" id="terminalOutput"><span class="prompt">$</span> Waiting for attack launch ...</pre>
+                    </div>
+                    <div class="terminal-footer px-3 py-2 border-top border-secondary">
+                        <div class="progress terminal-progress mb-2" style="height: 8px;">
+                            <div id="attackProgressBar"
+                                 class="progress-bar bg-gradient-to-r bg-success progress-bar-animated"
+                                 role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-light">
+                                <i class="fas fa-bolt text-warning me-1"></i>
+                                Tries: <span id="attemptCount" class="font-monospace text-success fw-bold">0</span>
+                            </span>
+                            <span class="text-light">
+                                Progress: <span id="progressPct" class="font-monospace text-info fw-bold">0</span>%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Countdown before reveal -->
+                <div class="card bg-dark border border-secondary glass-card d-none" id="countdownCard">
+                    <div class="card-body text-center">
+                        <div class="mb-1 text-light opacity-75 small">Analyzing results in</div>
+                        <div class="display-3 text-success countdown-number" id="countdownNumber">3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Card -->
+<div class="card bg-dark border border-secondary glass-card cyber-hud cyber-hud-result mb-4 d-none" id="resultCard">
+    <span class="corner corner-tl corner-result"></span><span class="corner corner-tr corner-result"></span>
+    <span class="corner corner-bl corner-result"></span><span class="corner corner-br corner-result"></span>
+    <div class="matrix-rain-overlay"></div>
+    <div class="card-header border-secondary d-flex flex-wrap align-items-center justify-content-between gap-2 cyber-hud-header">
+        <h5 class="mb-0"><i class="fas fa-chart-pie me-1 text-success"></i>Attack Result &amp; Security Report
+            <span class="ms-2 small badge bg-black-50 border border-success text-success cyber-pulse opacity-85">ANALYSIS READY</span>
+        </h5>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="#simulationCard" class="btn btn-sm btn-outline-success" id="backToSimBtn">
+                <i class="fas fa-arrow-rotate-left me-1"></i>Re-run
+            </a>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Download report">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="downloadTxtBtn" title="Download full report as plain text (.txt)">
+                    <i class="fas fa-file-lines me-1"></i>Report TXT
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info" id="downloadJsonBtn" title="Download report as JSON data (.json)">
+                    <i class="fas fa-file-code me-1"></i>Report JSON
+                </button>
+            </div>
+            <span class="badge fs-6" id="riskBadge">Risk Level: Medium</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="closeResultBtn" title="Close report (keep last result in memory)">
+                <i class="fas fa-xmark me-1"></i>Close
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card bg-dark border border-secondary glass-card h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-light mb-3"><i class="fas fa-chart-column me-1 text-success"></i>Security Score</h6>
+                        <div class="score-ring-wrap mb-3">
+                            <svg viewBox="0 0 160 160" width="180" height="180">
+                                <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>
+                                <circle id="scoreRing" cx="80" cy="80" r="66" fill="none"
+                                        stroke="#16a34a" stroke-width="12" stroke-linecap="round"
+                                        stroke-dasharray="414.69" stroke-dashoffset="414.69"
+                                        transform="rotate(-90 80 80)"/>
+                            </svg>
+                            <div class="score-ring-text">
+                                <div class="display-5 text-light" id="scoreNumber">0</div>
+                                <div class="small text-light opacity-75">/ 100</div>
+                                <div class="mt-1 badge" id="strengthBadge">Very Weak</div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-light opacity-75">Strength Meter</small>
+                            <div class="progress mt-1" style="height: 12px;">
+                                <div id="strengthMeter" class="progress-bar bg-danger" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="small text-light opacity-75">Entropy: <span class="text-info" id="entropyBits">0</span> bits</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card bg-dark border border-secondary glass-card h-100">
+                    <div class="card-body">
+                        <h6 class="text-light mb-3"><i class="fas fa-list-check me-1 text-info"></i>Attack Summary</h6>
+                        <table class="table table-sm table-dark align-middle mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted">Attack Used</td>
+                                    <td class="text-end"><span id="resAttack">—</span></td>
+                                </tr>
+                                <tr id="resHintsRow" style="display:none;">
+                                    <td class="text-muted align-middle">Personalized Hints</td>
+                                    <td class="text-end">
+                                        <div class="d-flex flex-wrap gap-1 justify-content-end" id="resHintsChips"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Total Tries (Approx)</td>
+                                    <td class="text-end"><span id="resAttempts" class="font-monospace text-warning">—</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Attack Success Rate</td>
+                                    <td class="text-end"><span id="resSuccess" class="font-monospace text-danger">—</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Estimated Crack Time</td>
+                                    <td class="text-end"><span id="resTime" class="font-monospace text-warning">—</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Password Strength</td>
+                                    <td class="text-end"><span id="resStrength">—</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Risk Level</td>
+                                    <td class="text-end"><span id="resRisk">—</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card bg-dark border border-secondary glass-card h-100">
+                    <div class="card-body">
+                        <h6 class="text-light mb-3"><i class="fas fa-chart-simple me-1 text-warning"></i>Security Breakdown</h6>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-1"><span>Length</span><span id="breakdownLen">0</span></div>
+                            <div class="progress" style="height:8px;"><div id="bdLenBar" class="progress-bar bg-info" style="width:0%"></div></div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-1"><span>Variety (case / digit / symbol)</span><span id="breakdownVar">0</span></div>
+                            <div class="progress" style="height:8px;"><div id="bdVarBar" class="progress-bar bg-success" style="width:0%"></div></div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-1"><span>Randomness &amp; Uniqueness</span><span id="breakdownRand">0</span></div>
+                            <div class="progress" style="height:8px;"><div id="bdRandBar" class="progress-bar bg-warning" style="width:0%"></div></div>
+                        </div>
+                        <canvas id="breakdownChart" height="160"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category-by-Category Attack Report (10B per category) -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card bg-dark border border-secondary glass-card">
+                    <div class="card-header border-secondary d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <h6 class="mb-0 text-success">
+                            <i class="fas fa-layer-group me-1"></i>
+                            Attack Pipeline: Category-by-Category Breakdown
+                            <span class="small text-light opacity-75 ms-2 fw-normal">
+                                (10,000,000,000 candidates scanned per category)
+                            </span>
+                        </h6>
+                        <div class="d-flex align-items-center gap-3 small text-light opacity-90 flex-wrap" style="font-family:var(--bs-font-monospace);">
+                            <span class="stat-pill">
+                                <i class="fas fa-flag-checkered text-info me-1"></i>
+                                Total: <span id="totalCats" class="fw-bold text-info">—</span> cats
+                            </span>
+                            <span class="stat-pill">
+                                <i class="fas fa-magnifying-glass text-warning me-1"></i>
+                                Scanned: <span id="totalScanAttempts" class="fw-bold text-warning">—</span>
+                            </span>
+                            <span class="stat-pill">
+                                <i class="fas fa-forward text-info me-1"></i>
+                                Skipped: <span id="totalSkips" class="fw-bold text-info">0</span>
+                            </span>
+                            <span class="stat-pill">
+                                <i class="fas fa-bullseye text-danger me-1"></i>
+                                Matches: <span id="totalMatches" class="fw-bold text-danger">0</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark align-middle mb-0" id="categoryReportTable">
+                                <thead class="bg-black-50">
+                                    <tr>
+                                        <th style="width: 5%;" class="text-center">#</th>
+                                        <th style="width: 28%;">Category (Priority)</th>
+                                        <th style="width: 14%;" class="text-center">Attempts</th>
+                                        <th style="width: 10%;" class="text-center">Status</th>
+                                        <th style="width: 14%;" class="text-center">Found At</th>
+                                        <th style="width: 29%;">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoryReportBody">
+                                    <tr><td colspan="6" class="text-center text-light opacity-50 py-3">Run a simulation to see the 6-category report.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card bg-dark border border-secondary glass-card h-100">
+                    <div class="card-header border-secondary">
+                        <h6 class="mb-0 text-success"><i class="fas fa-lightbulb me-1"></i>Recommended Improvements</h6>
+                    </div>
+                    <ul class="list-group list-group-flush bg-transparent" id="tipsList"></ul>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card bg-dark border border-secondary glass-card h-100">
+                    <div class="card-header border-secondary">
+                        <h6 class="mb-0 text-success"><i class="fas fa-book-open me-1"></i>Why This Attack Works</h6>
+                    </div>
+                    <div class="card-body" id="educationalBox">
+                        <div class="mb-3">
+                            <h6 class="text-info mb-2"><i class="fas fa-circle-question me-1"></i>Why the attack works</h6>
+                            <p class="small text-light lh-base mb-0" id="eduWhyWorks">—</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-danger mb-2"><i class="fas fa-unlock-keyhole me-1"></i>Why weak passwords fail</h6>
+                            <p class="small text-light lh-base mb-0" id="eduWhyFails">—</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-warning mb-2"><i class="fas fa-shield-halved me-1"></i>How to defend</h6>
+                            <p class="small text-light lh-base mb-0" id="eduDefend">—</p>
+                        </div>
+                        <div>
+                            <h6 class="text-success mb-2"><i class="fas fa-check-double me-1"></i>Best practices</h6>
+                            <div class="small text-light lh-base" id="eduBest">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/attack_simulator.js') }}"></script>
+{% endblock %}

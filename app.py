@@ -14,6 +14,7 @@ from crypto.hashing import HashGenerator
 from crypto.key_generator import KeyGenerator
 from utils.validators import validate_aes_key, validate_des_key, validate_not_empty
 from utils.helpers import export_history_to_csv
+from routes.attack_routes import attack_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config.from_object(Config)
 csrf = CSRFProtect(app)
+
+app.register_blueprint(attack_bp)
 
 
 def timestamp_to_str(ts):
