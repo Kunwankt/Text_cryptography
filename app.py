@@ -4,7 +4,7 @@ import time
 import base64
 import logging
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_file, make_response
+from flask import Flask, render_template, request, jsonify, send_file, make_response, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from config import Config
 from crypto.aes import AES256Cipher
@@ -202,6 +202,10 @@ def clear_history():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/google8f0ce872da7fe93a.html')
+def google_site_verification():
+    return send_from_directory(app.root_path, 'google8f0ce872da7fe93a.html')
 
 
 @app.route('/dashboard')
