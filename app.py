@@ -14,6 +14,7 @@ from crypto.hashing import HashGenerator
 from crypto.key_generator import KeyGenerator
 from utils.validators import validate_aes_key, validate_des_key, validate_not_empty
 from utils.helpers import export_history_to_csv
+from utils.rainbow_lookup import generate_educational_payload, total_entries
 from routes.attack_routes import attack_bp
 
 logging.basicConfig(level=logging.INFO)
@@ -211,7 +212,8 @@ def google_site_verification():
 @app.route('/dashboard')
 def dashboard():
     history = get_history()
-    return render_template('dashboard.html', history=history)
+    rainbow_counts = total_entries()
+    return render_template('dashboard.html', history=history, rainbow_counts=rainbow_counts)
 
 
 @app.route('/encrypt')
@@ -443,6 +445,32 @@ def check_password_strength():
     password = data.get('password', '')
     result = KeyGenerator.check_password_strength(password)
     return jsonify({'success': True, **result})
+
+
+@app.route('/api/hash/lookup', methods=['POST'])
+def hash_lookup_rainbow():
+    """Educational rainbow-table hash lookup. Does NOT reverse hashes mathematically.
+
+    Accepts JSON: { "hash": "<hex string md5|sha256|sha512>" }
+    Returns:
+      { success, found, algo_detected, plaintext, category, notes, rainbow_size, educational_warning }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    h = (data.get("hash") or "").strip()
+    if not h:
+        payload = generate_educational_payload("")
+        return jsonify({"success": False, "error": "No hash provided.", **payload}), 400
+    payload = generate_educational_payload(h)
+    return jsonify({"success": True, **payload})
+
+
+@app.route('/api/hash/lookup/stats', methods=['GET'])
+def hash_lookup_stats():
+    """Return rainbow table sizes for dashboard UI informational display."""
+    return jsonify({"success": True, "rainbow_size": total_entries()})
 
 
 @app.route('/api/history/delete/<int:entry_id>', methods=['DELETE'])
