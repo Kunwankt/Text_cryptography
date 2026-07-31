@@ -1,106 +1,723 @@
 /* Custom styles for Multi Algorithm Text Encryption System */
-body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+
+/* ============================================================
+   CYBERSECURITY PROFESSIONAL THEME — BACKGROUND LAYER
+   Style: SOC-analyst / Threat-Intel dashboard feel
+   - Deep navy → slate → near-black multi-stop gradient
+   - Soft radial neon bloom in top-left (green) + bottom-right (cyan/purple)
+   - Subtle animated cyber grid (1px lines + 64px blocks)
+   - Faint full-page scanline shimmer
+   - Fixed-position, so it stays put when scrolling
+   ============================================================ */
+
+:root {
+    --cyber-bg-0:      #05070f;
+    --cyber-bg-1:      #0a0f1f;
+    --cyber-bg-2:      #0d1428;
+    --cyber-bg-3:      #111a33;
+    --cyber-green:     #10b981;
+    --cyber-green-2:   #34d399;
+    --cyber-cyan:      #22d3ee;
+    --cyber-blue:      #3b82f6;
+    --cyber-purple:    #8b5cf6;
+    --cyber-pink:      #ec4899;
+    --cyber-danger:    #ef4444;
+    --cyber-warning:   #f59e0b;
+    --cyber-text-0:    #f8fafc;
+    --cyber-text-1:    #cbd5e1;
+    --cyber-border:    rgba(16, 185, 129, 0.22);
+}
+
+html, body {
     min-height: 100vh;
 }
 
+body {
+    background-color: var(--cyber-bg-0);
+    background-image:
+        /* 4) Top diagonal shine */
+        radial-gradient(1200px 600px at 15% -10%, rgba(16, 185, 129, 0.18), transparent 60%),
+        /* 3) Bottom-right purple/cyan bloom */
+        radial-gradient(900px 700px at 95% 110%, rgba(59, 130, 246, 0.20) 0%, rgba(139, 92, 246, 0.14) 40%, transparent 70%),
+        /* 2) Subtle animated grid */
+        linear-gradient(rgba(46, 125, 95, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(46, 125, 95, 0.08) 1px, transparent 1px),
+        /* 1) Deep multi-stop base gradient */
+        linear-gradient(160deg,
+            var(--cyber-bg-0) 0%,
+            var(--cyber-bg-1) 30%,
+            var(--cyber-bg-2) 60%,
+            var(--cyber-bg-3) 100%);
+    background-size:
+        auto, auto,
+        64px 64px, 64px 64px,
+        auto;
+    background-attachment: fixed;
+    background-position: center center;
+    color: var(--cyber-text-0);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated scanline sweep across the viewport */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.018) 0px,
+        rgba(255, 255, 255, 0.018) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+}
+
+/* Slow traveling highlight bar (subtle, almost imperceptible — adds life) */
+body::after {
+    content: "";
+    position: fixed;
+    top: -5%;
+    left: -10%;
+    right: -10%;
+    height: 22%;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(16, 185, 129, 0.04) 50%,
+        transparent 100%);
+    filter: blur(30px);
+    transform: translateY(-10%);
+    animation: cyber-scan-sweep 9s ease-in-out infinite;
+}
+
+@keyframes cyber-scan-sweep {
+    0%   { transform: translateY(-20%); opacity: 0.2; }
+    50%  { transform: translateY(60vh); opacity: 0.55; }
+    100% { transform: translateY(120vh); opacity: 0.2; }
+}
+
+/* Cyber corner decorations — looks like a targeting HUD overlay */
+.cyber-corner {
+    position: fixed;
+    width: 38px;
+    height: 38px;
+    border: 2px solid rgba(16, 185, 129, 0.55);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.75;
+}
+.cyber-corner.tl { top: 18px;    left: 18px;    border-right: 0; border-bottom: 0; }
+.cyber-corner.tr { top: 18px;    right: 18px;   border-left: 0;  border-bottom: 0; }
+.cyber-corner.bl { bottom: 18px; left: 18px;    border-right: 0; border-top: 0; }
+.cyber-corner.br { bottom: 18px; right: 18px;   border-left: 0;  border-top: 0; }
+
+/* Ensure page content sits above the background layers */
+body > * { position: relative; z-index: 4; }
+
+/* ============================================================
+   GLASS CARD CYBER UPGRADE
+   ============================================================ */
 .glass-card {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(25, 135, 84, 0.25);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    background:
+        linear-gradient(135deg, rgba(17, 26, 51, 0.82), rgba(10, 15, 31, 0.88));
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid var(--cyber-border);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.35),
+        0 12px 40px rgba(0, 0, 0, 0.45),
+        0 0 40px rgba(16, 185, 129, 0.05);
+    transition: all 0.3s ease, box-shadow 0.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Thin top-edge green accent strip */
+.glass-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(16, 185, 129, 0.9),
+        rgba(59, 130, 246, 0.7),
+        rgba(139, 92, 246, 0.6),
+        transparent);
+    opacity: 0.85;
 }
 
 .glass-card:hover {
-    border-color: rgba(25, 135, 84, 0.6);
-    box-shadow: 0 12px 40px rgba(25, 135, 84, 0.25);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    border-color: rgba(16, 185, 129, 0.55);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.35),
+        0 20px 60px rgba(0, 0, 0, 0.55),
+        0 0 60px rgba(16, 185, 129, 0.11);
 }
 
-.nav-link {
+/* Card headers — military-green HUD tabs */
+.card.bg-dark .card-header,
+.glass-card .card-header {
+    background:
+        linear-gradient(90deg, rgba(16, 185, 129, 0.10), rgba(16, 185, 129, 0.02) 40%, transparent);
+    border-bottom: 1px solid var(--cyber-border) !important;
+    letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   RAINBOW LOOKUP — PWNED / CLEAN result headers + glow
+   ============================================================ */
+.cyber-header-pwned {
+    background:
+        linear-gradient(90deg,
+            rgba(239, 68, 68, 0.22) 0%,
+            rgba(236, 72, 153, 0.12) 50%,
+            rgba(239, 68, 68, 0.04) 100%) !important;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.55) !important;
+    color: #fecaca !important;
+    position: relative;
+    overflow: hidden;
+}
+.cyber-header-pwned::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(239, 68, 68, 0.08) 0,
+        rgba(239, 68, 68, 0.08) 8px,
+        transparent 8px,
+        transparent 16px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+}
+
+.cyber-header-secure {
+    background:
+        linear-gradient(90deg,
+            rgba(16, 185, 129, 0.22) 0%,
+            rgba(34, 211, 238, 0.12) 55%,
+            rgba(16, 185, 129, 0.04) 100%) !important;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.55) !important;
+    color: #bbf7d0 !important;
+    position: relative;
+}
+
+/* Outer card glow */
+.cyber-pwned-glow {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 0 0 1px rgba(239, 68, 68, 0.35),
+        0 16px 50px rgba(0, 0, 0, 0.5),
+        0 0 80px rgba(239, 68, 68, 0.22),
+        0 0 140px rgba(236, 72, 153, 0.10) !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+.cyber-secure-glow {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 0 0 1px rgba(16, 185, 129, 0.35),
+        0 16px 50px rgba(0, 0, 0, 0.5),
+        0 0 80px rgba(16, 185, 129, 0.20),
+        0 0 140px rgba(34, 211, 238, 0.10) !important;
+    border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+/* Danger pulsing neon — animates only when a hash is CRACKED */
+.animate-pulse-neon {
+    animation: pulse-neon-danger 1.6s ease-in-out infinite;
+}
+@keyframes pulse-neon-danger {
+    0%, 100% {
+        box-shadow:
+            0 0 0 rgba(239, 68, 68, 0.0),
+            inset 0 0 24px rgba(239, 68, 68, 0.10);
+    }
+    50% {
+        box-shadow:
+            0 0 32px rgba(239, 68, 68, 0.55),
+            0 0 60px rgba(236, 72, 153, 0.25),
+            inset 0 0 24px rgba(239, 68, 68, 0.22);
+    }
+}
+
+/* ============================================================
+   CYBER NAVBAR — SOC / Threat-Intel command-center top bar
+   ============================================================ */
+.cyber-navbar {
+    background:
+        linear-gradient(180deg, rgba(10, 15, 31, 0.96), rgba(5, 7, 15, 0.98));
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border-bottom: 1px solid transparent !important;
+    border-image: linear-gradient(90deg,
+        transparent,
+        rgba(16, 185, 129, 0.8),
+        rgba(59, 130, 246, 0.6),
+        rgba(139, 92, 246, 0.5),
+        transparent) 1 !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.03) inset,
+        0 8px 30px rgba(0, 0, 0, 0.55),
+        0 0 40px rgba(16, 185, 129, 0.05);
+}
+
+.cyber-brand {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.cyber-brand .fa-shield-halved {
+    color: var(--cyber-green);
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.55));
+}
+
+.brand-name {
+    background: linear-gradient(90deg,
+        var(--cyber-green-2) 0%,
+        var(--cyber-cyan) 50%,
+        var(--cyber-blue) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.brand-version {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.62rem;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 0.2rem 0.55rem !important;
+    background: rgba(5, 7, 15, 0.85) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: var(--cyber-green-2) !important;
+    box-shadow:
+        inset 0 0 12px rgba(16, 185, 129, 0.08),
+        0 0 10px rgba(16, 185, 129, 0.12);
+}
+
+/* SOC live status pills (right side of navbar) */
+.cyber-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.cyber-status-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    display: inline-block;
+}
+
+.cyber-status-pill.secure {
+    background:
+        linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(16, 185, 129, 0.05));
+    color: #bbf7d0;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    box-shadow:
+        inset 0 0 14px rgba(16, 185, 129, 0.10),
+        0 0 18px rgba(16, 185, 129, 0.15);
+}
+.cyber-status-pill.secure .dot {
+    background: var(--cyber-green);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: cyber-dot-pulse 1.8s ease-out infinite;
+}
+
+.cyber-status-pill.info {
+    background:
+        linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.08));
+    color: #bfdbfe;
+    border: 1px solid rgba(59, 130, 246, 0.40);
+    box-shadow:
+        inset 0 0 14px rgba(59, 130, 246, 0.08),
+        0 0 18px rgba(59, 130, 246, 0.12);
+}
+
+@keyframes cyber-dot-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.75); }
+    70%  { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0);    }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);    }
+}
+
+/* Cyber nav-link styling — tactical HUD feel */
+.cyber-navbar .nav-link {
     border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    padding: 0.45rem 0.9rem !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.22s ease;
+    color: rgba(226, 232, 240, 0.9) !important;
+    position: relative;
+}
+.cyber-navbar .nav-link i { color: var(--cyber-green); opacity: 0.85; transition: all 0.2s; }
+.cyber-navbar .nav-link:hover {
+    background: linear-gradient(90deg,
+        rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05));
+    color: #ffffff !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(16, 185, 129, 0.35),
+        0 0 24px rgba(16, 185, 129, 0.12);
+    transform: translateY(-1px);
+}
+.cyber-navbar .nav-link:hover i {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7));
+}
+.cyber-navbar .nav-link.active {
+    background:
+        linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95)) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 1px rgba(16, 185, 129, 0.4),
+        0 6px 22px rgba(16, 185, 129, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.cyber-navbar .nav-link.active i { color: #ffffff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+
+/* Cyber footer — terminal SOC status line */
+.cyber-footer {
+    background:
+        linear-gradient(0deg, rgba(5, 7, 15, 0.98), rgba(10, 15, 31, 0.92));
+    border-top: 1px solid transparent !important;
+    border-image: linear-gradient(90deg,
+        transparent,
+        rgba(16, 185, 129, 0.5),
+        rgba(59, 130, 246, 0.35),
+        rgba(139, 92, 246, 0.3),
+        transparent) 1 !important;
+    position: relative;
+    overflow: hidden;
+}
+.cyber-footer::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent, rgba(16, 185, 129, 0.8), transparent);
+    opacity: 0.7;
+}
+.cyber-footer .font-monospace {
+    letter-spacing: 0.01em;
 }
 
-.nav-link:hover {
-    background-color: rgba(25, 135, 84, 0.15);
+/* ------------------------------------------------------------ */
+/* ============================================================
+   DARK THEME CONTRAST BOOST (AGGRESSIVE) — prevents invisible
+   low-contrast text on glassmorphism cards. Never force the user
+   to select text in order to read it.
+   Rules below are intentionally specific + use !important so NO
+   Bootstrap default / browser override / CSS cascade can dim them.
+   ============================================================ */
+
+/* --- 1) Card HEADERS and card BODY text in dark/glass cards --- */
+.card.bg-dark .card-header,
+.glass-card .card-header,
+.card.bg-dark .card-header h1,
+.card.bg-dark .card-header h2,
+.card.bg-dark .card-header h3,
+.card.bg-dark .card-header h4,
+.card.bg-dark .card-header h5,
+.card.bg-dark .card-header h6,
+.glass-card .card-header h1,
+.glass-card .card-header h2,
+.glass-card .card-header h3,
+.glass-card .card-header h4,
+.glass-card .card-header h5,
+.glass-card .card-header h6 {
+    color: #ffffff !important;
 }
 
-.nav-link.active {
-    background-color: rgba(25, 135, 84, 0.9);
-    color: white !important;
+.card.bg-dark .card-header .fas,
+.glass-card .card-header .fas,
+.card.bg-dark .card-header .fa-solid,
+.glass-card .card-header .fa-solid {
+    opacity: 1 !important;
 }
 
-.form-control, .form-select {
-    background-color: rgba(15, 23, 42, 0.6) !important;
-    border-color: rgba(25, 135, 84, 0.35) !important;
+/* --- 2) All headings (h1..h6) INSIDE a dark/glass card BODY --- */
+.card.bg-dark .card-body h1,
+.card.bg-dark .card-body h2,
+.card.bg-dark .card-body h3,
+.card.bg-dark .card-body h4,
+.card.bg-dark .card-body h5,
+.card.bg-dark .card-body h6,
+.glass-card .card-body h1,
+.glass-card .card-body h2,
+.glass-card .card-body h3,
+.glass-card .card-body h4,
+.glass-card .card-body h5,
+.glass-card .card-body h6 {
     color: #f8fafc !important;
 }
 
+/* --- 3) Paragraphs and regular body text inside cards --- */
+.card.bg-dark .card-body p,
+.glass-card .card-body p,
+.card.bg-dark .card-body span:not(.badge):not(.btn):not(.progress-bar):not(.fa):not(.fas):not(.fa-solid),
+.glass-card .card-body span:not(.badge):not(.btn):not(.progress-bar):not(.fa):not(.fas):not(.fa-solid) {
+    color: #e2e8f0 !important;
+}
+
+/* --- 4) Catch-all for any text-muted inside dark cards --- */
+.bg-dark .text-muted,
+.glass-card .text-muted,
+.card.bg-dark .text-muted,
+body.bg-dark .text-muted {
+    color: rgba(248, 250, 252, 0.85) !important;
+}
+
+/* --- 5) Bootstrap form-labels default to body-color (too low on glass) --- */
+.form-label {
+    color: #f1f5f9 !important;
+    font-weight: 600 !important;
+}
+
+/* --- 6) Table text inside dark cards --- */
+.table.table-dark td,
+.table.table-dark th,
+.table.table-dark thead th {
+    color: #e2e8f0 !important;
+    background-color: transparent !important;
+}
+.table.table-dark thead th {
+    color: #f8fafc !important;
+    font-weight: 700 !important;
+}
+
+/* --- 7) Secondary/small helper text inside glass cards --- */
+.glass-card .small,
+.card.bg-dark .small {
+    color: rgba(241, 245, 249, 0.9) !important;
+}
+
+/* --- 8) Boost very low opacity on readable content (non-decorative) --- */
+.text-light.opacity-50:not(.badge):not(.btn):not(.progress-bar):not(.border),
+.text-light.opacity-75:not(.badge):not(.btn):not(.progress-bar):not(.border) {
+    opacity: 0.92 !important;
+}
+
+/* --- 9) Dashboard stat sub-labels (the little h6 labels above big numbers) --- */
+.stat-card-label {
+    color: #cbd5e1 !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* --- 10) Ensure placeholder text is readable but still looks like placeholder --- */
+.form-control::placeholder,
+.form-select::placeholder,
+textarea::placeholder,
+input::placeholder {
+    color: rgba(203, 213, 225, 0.75) !important;
+    opacity: 1 !important;
+}
+
+/* ============================================================
+   CYBER FORM FIELDS — terminal-input / data-entry vibe
+   Background sits in glass, focus ring glows green→cyan
+   ============================================================ */
+.form-control, .form-select {
+    background:
+        linear-gradient(135deg, rgba(10, 15, 31, 0.82), rgba(5, 7, 15, 0.92)) !important;
+    border: 1px solid rgba(16, 185, 129, 0.30) !important;
+    color: #f8fafc !important;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    transition: all 0.25s ease !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+.form-control:hover, .form-select:hover {
+    border-color: rgba(16, 185, 129, 0.50) !important;
+}
 .form-control:focus, .form-select:focus {
-    background-color: rgba(15, 23, 42, 0.85) !important;
-    border-color: rgba(25, 135, 84, 0.9) !important;
-    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+    background:
+        linear-gradient(135deg, rgba(5, 7, 15, 0.94), rgba(10, 15, 31, 0.88)) !important;
+    border-color: rgba(16, 185, 129, 0.95) !important;
+    box-shadow:
+        0 0 0 3px rgba(16, 185, 129, 0.18),
+        0 0 24px rgba(16, 185, 129, 0.22),
+        0 0 48px rgba(34, 211, 238, 0.08),
+        inset 0 0 18px rgba(0, 0, 0, 0.35) !important;
+    outline: none !important;
 }
 
+/* ============================================================
+   CYBER BUTTONS — tactical CTAs with multi-layer gradient
+   - .btn-success     : primary green→cyan (Encrypt / Submit)
+   - .btn-outline-success : ghosted secondary variant
+   - Plus a new neon-danger variant hooked to Bootstrap danger
+   ============================================================ */
 .btn-success {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-    border: none;
-    transition: all 0.3s ease;
+    background:
+        linear-gradient(135deg, var(--cyber-green) 0%, #059669 55%, var(--cyber-cyan) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.55) !important;
+    color: #ecfeff !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 4px 18px rgba(16, 185, 129, 0.25);
 }
-
 .btn-success:hover {
-    background: linear-gradient(135deg, #15803d 0%, #14532d 100%);
-    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
-    transform: translateY(-1px);
+    background:
+        linear-gradient(135deg, #34d399 0%, #10b981 50%, #22d3ee 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 8px 28px rgba(16, 185, 129, 0.45),
+        0 0 40px rgba(34, 211, 238, 0.18);
+    transform: translateY(-1.5px);
+    border-color: rgba(52, 211, 153, 0.7) !important;
+}
+.btn-success:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.35),
+        0 2px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-outline-success {
-    border-color: rgba(25, 135, 84, 0.8);
-    color: #22c55e;
+    border: 1px solid rgba(16, 185, 129, 0.6) !important;
+    color: var(--cyber-green-2) !important;
+    background: rgba(16, 185, 129, 0.05);
+    font-weight: 600 !important;
+    transition: all 0.25s ease !important;
+    box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.06);
 }
-
 .btn-outline-success:hover {
-    background-color: rgba(25, 135, 84, 0.2);
-    border-color: rgba(25, 135, 84, 1);
-    color: #4ade80;
+    background: linear-gradient(135deg,
+        rgba(16, 185, 129, 0.18), rgba(34, 211, 238, 0.10));
+    border-color: rgba(52, 211, 153, 0.95) !important;
+    color: #a7f3d0 !important;
+    box-shadow:
+        0 6px 24px rgba(16, 185, 129, 0.28),
+        0 0 30px rgba(34, 211, 238, 0.08);
+    transform: translateY(-1px);
 }
 
+/* Boost Bootstrap danger buttons too — often used for reset/clear */
+.btn-danger {
+    background:
+        linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #ec4899 100%);
+    border: 1px solid rgba(239, 68, 68, 0.55) !important;
+    color: #fff1f2 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 4px 18px rgba(239, 68, 68, 0.25);
+}
+.btn-danger:hover {
+    background:
+        linear-gradient(135deg, #f87171 0%, #ef4444 50%, #ec4899 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 8px 28px rgba(239, 68, 68, 0.42),
+        0 0 40px rgba(236, 72, 153, 0.15);
+    transform: translateY(-1.5px);
+    border-color: rgba(248, 113, 113, 0.7) !important;
+}
+
+/* ============================================================
+   TOASTS + PROGRESS + TABS — cyber SOC notifications
+   ============================================================ */
 .toast {
-    background: rgba(30, 41, 59, 0.95) !important;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(25, 135, 84, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background:
+        linear-gradient(135deg, rgba(10, 15, 31, 0.97), rgba(5, 7, 15, 0.99)) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.55),
+        0 0 40px rgba(16, 185, 129, 0.10) !important;
+    position: relative;
+    overflow: hidden;
+}
+.toast::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent, var(--cyber-green), var(--cyber-cyan), transparent);
+}
+.toast-container {
+    z-index: 1080 !important;
+}
+.toast {
+    min-width: 320px !important;
+    max-width: 100% !important;
+    animation: slideInRight 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .progress {
-    background-color: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(25, 135, 84, 0.2);
+    background-color: rgba(5, 7, 15, 0.85);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 9999px;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    height: 0.75rem;
+}
+.progress-bar {
+    background: linear-gradient(90deg,
+        var(--cyber-green), var(--cyber-cyan), var(--cyber-blue));
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
 }
 
 .tab-content {
     padding-top: 1rem;
 }
 
-.toast-container {
-    z-index: 1080 !important;
+/* Badge backgrounds: add missing bg-black-50 / bg-black-x helpers */
+.bg-black-50 {
+    background-color: rgba(5, 7, 15, 0.55) !important;
+}
+.bg-black-75 {
+    background-color: rgba(5, 7, 15, 0.82) !important;
 }
 
-.toast {
-    min-width: 320px !important;
-    max-width: 100% !important;
-    animation: slideInRight 0.35s ease-out !important;
+/* Small accent helper: cyber pill badge (used in rainbow PWNED/CLEAN titles) */
+.badge.rounded-pill {
+    letter-spacing: 0.08em;
+    font-weight: 800;
 }
 
 @keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0);    }
 }
 

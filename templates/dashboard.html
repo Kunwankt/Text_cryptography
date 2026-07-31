@@ -9,7 +9,7 @@
     <div class="col-md-4">
         <div class="card bg-dark border border-secondary glass-card">
             <div class="card-body">
-                <h6 class="text-muted">Security Tools</h6>
+                <h6 class="stat-card-label">Security Tools</h6>
                 <h3 class="text-success"><i class="fas fa-tools me-2"></i>Tools</h3>
             </div>
         </div>
@@ -17,7 +17,7 @@
     <div class="col-md-4">
         <div class="card bg-dark border border-secondary glass-card">
             <div class="card-body">
-                <h6 class="text-muted">Recent Activity</h6>
+                <h6 class="stat-card-label">Recent Activity</h6>
                 <h3 class="text-success"><i class="fas fa-history me-2"></i>{{ history|length }}</h3>
             </div>
         </div>
@@ -25,7 +25,7 @@
     <div class="col-md-4">
         <div class="card bg-dark border border-secondary glass-card">
             <div class="card-body">
-                <h6 class="text-muted">Performance Last Run</h6>
+                <h6 class="stat-card-label">Performance Last Run</h6>
                 <h3 class="text-success">
                     <i class="fas fa-stopwatch me-2"></i>
                     <span id="perfLastRunSummary">—</span>
@@ -39,7 +39,7 @@
     <div class="col-lg-6">
         <div class="card bg-dark border border-secondary glass-card h-100">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-hashtag me-2"></i>Hash Generator & Comparison</h5>
+                <h5 class="mb-0 text-white"><i class="fas fa-hashtag me-2 text-success"></i>Hash Generator & Comparison</h5>
             </div>
             <div class="card-body">
                 <div class="mb-3">
@@ -61,7 +61,7 @@
                 </button>
 
                 <div class="mb-3">
-                    <label class="form-label text-muted">Selected Hash Result:</label>
+                    <label class="form-label text-light">Selected Hash Result:</label>
                     <div class="input-group">
                         <input type="text" id="hashOutput" class="form-control bg-dark text-light border-secondary" readonly placeholder="Click a hash button above...">
                         <button class="btn btn-outline-success" onclick="copyToClipboard('hashOutput')" title="Copy result">
@@ -71,7 +71,7 @@
                 </div>
 
                 <hr class="border-secondary">
-                <h6 class="text-success mb-3"><i class="fas fa-scale-balanced me-2"></i>Hash Comparison</h6>
+                <h6 class="text-white mb-3"><i class="fas fa-scale-balanced me-2 text-success"></i>Hash Comparison</h6>
                 <div class="table-responsive">
                     <table class="table table-dark table-sm table-hover mb-0">
                         <thead>
@@ -86,7 +86,7 @@
                             <tr id="rowSha256">
                                 <td><span class="badge bg-success fs-6">SHA-256</span></td>
                                 <td><code id="compareSha256" class="text-success small">—</code></td>
-                                <td class="text-muted">256</td>
+                                <td class="text-light opacity-75">256</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-success border-0" onclick="copyTextById('compareSha256')" title="Copy SHA-256">
                                         <i class="fas fa-copy"></i>
@@ -96,7 +96,7 @@
                             <tr id="rowSha512">
                                 <td><span class="badge bg-success fs-6">SHA-512</span></td>
                                 <td><code id="compareSha512" class="text-success small">—</code></td>
-                                <td class="text-muted">512</td>
+                                <td class="text-light opacity-75">512</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-success border-0" onclick="copyTextById('compareSha512')" title="Copy SHA-512">
                                         <i class="fas fa-copy"></i>
@@ -106,7 +106,7 @@
                             <tr id="rowMd5">
                                 <td><span class="badge bg-warning text-dark fs-6">MD5</span></td>
                                 <td><code id="compareMd5" class="text-warning small">—</code></td>
-                                <td class="text-muted">128</td>
+                                <td class="text-light opacity-75">128</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-warning border-0" onclick="copyTextById('compareMd5')" title="Copy MD5">
                                         <i class="fas fa-copy"></i>
@@ -122,7 +122,7 @@
     <div class="col-lg-6">
         <div class="card bg-dark border border-secondary glass-card h-100">
             <div class="card-header border-secondary">
-                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Password Generator & Strength Checker</h5>
+                <h5 class="mb-0 text-white"><i class="fas fa-key me-2 text-success"></i>Password Generator & Strength Checker</h5>
             </div>
             <div class="card-body">
                 <div class="mb-3">
@@ -134,14 +134,14 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted">Check Password Strength:</label>
+                    <label class="form-label text-light">Check Password Strength:</label>
                     <input type="text" id="strengthInput" class="form-control bg-dark text-light border-secondary" oninput="checkPasswordStrength()">
                 </div>
                 <div class="mb-3">
                     <div class="progress" style="height: 25px;">
                         <div id="strengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
                     </div>
-                    <div id="strengthText" class="text-muted mt-1"></div>
+                    <div id="strengthText" class="text-light mt-1"></div>
                 </div>
                 <button class="btn btn-sm btn-outline-success" onclick="copyToClipboard('passwordOutput')">
                     <i class="fas fa-copy me-1"></i>Copy Password
@@ -153,7 +153,7 @@
 
 <div class="card bg-dark border border-secondary glass-card mb-4">
     <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Performance Comparison</h5>
+        <h5 class="mb-0 text-white"><i class="fas fa-chart-bar me-2 text-success"></i>Performance Comparison</h5>
         <button id="perfRunBtn" class="btn btn-sm btn-success" onclick="runPerformanceTest()">
             <i id="perfRunIcon" class="fas fa-chart-line me-1"></i>
             <span id="perfRunLabel">Run Benchmark Test</span>
@@ -167,8 +167,8 @@
                 <div class="mb-3 text-success" style="font-size: 3.5rem;">
                     <i class="fas fa-chart-column"></i>
                 </div>
-                <h6 class="text-light mb-2">No benchmark data yet</h6>
-                <p class="text-muted small mb-3">
+                <h6 class="text-white mb-2">No benchmark data yet</h6>
+                <p class="text-light opacity-75 small mb-3">
                     Click <span class="text-success fw-semibold">"Run Benchmark Test"</span> above to compare
                     encryption speed, key length, and security level across AES-256, DES, and RSA-2048.
                 </p>
@@ -211,9 +211,168 @@
     </div>
 </div>
 
+<div class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 text-white">
+            <i class="fas fa-database me-2 text-warning"></i>Hash Lookup (Rainbow Table)
+            <span class="badge bg-warning text-dark fs-6 ms-2">Educational Only</span>
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+            <small class="text-light">
+                Dictionary size:
+                <span class="badge bg-success rounded-pill">{{ rainbow_counts.unique_plaintexts }}</span>
+            </small>
+            <button class="btn btn-sm btn-outline-warning border-0"
+                    type="button" data-bs-toggle="collapse"
+                    data-bs-target="#rainbowHelp" aria-expanded="false" aria-controls="rainbowHelp"
+                    title="Learn what this actually does">
+                <i class="fas fa-circle-info"></i> How it works
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning bg-warning bg-opacity-10 border border-warning-subtle mb-3" role="alert">
+            <div class="d-flex gap-2">
+                <i class="fas fa-triangle-exclamation text-warning flex-shrink-0 mt-1"></i>
+                <div class="small">
+                    <strong class="text-white">Hashes are ONE-WAY functions — they cannot be mathematically reversed.</strong><br>
+                    This tool only demonstrates a
+                    <span class="text-warning fw-semibold">rainbow / dictionary lookup</span>:
+                    it checks the hash against a precomputed table of {{ rainbow_counts.unique_plaintexts }} common
+                    passwords, names, words, and hybrid mutations. If found, it means the input was a weak/common choice.
+                </div>
+            </div>
+        </div>
+
+        <div class="collapse mb-3" id="rainbowHelp">
+            <div class="card card-body bg-dark border border-secondary glass-card small">
+                <h6 class="text-white mb-2"><i class="fas fa-book-open me-1 text-success"></i>Quick Educational Primer</h6>
+                <ul class="mb-0 ps-3 text-light">
+                    <li><b>MD5 / SHA-256 / SHA-512 are deterministic &amp; one-way.</b> Same input → same hash, always. No "inverse formula" exists.</li>
+                    <li><b>Rainbow tables work by precomputing billions of candidate→hash pairs</b>, then looking matches up — essentially a giant space/time tradeoff.</li>
+                    <li><b>Why salt defeats rainbow tables:</b> a unique per-user salt is prepended/appended before hashing, so the precomputed tables are useless.</li>
+                    <li><b>Rule of thumb for real apps:</b> never store plain passwords. Never use raw SHA/MD5 for passwords. Use <em>salted key-stretching</em> (Argon2id, bcrypt, PBKDF2).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row g-3 align-items-end mb-3">
+            <div class="col-12 col-lg-8">
+                <label for="rainbowHashInput" class="form-label">
+                    Paste a hash to look up
+                    <span class="badge bg-success-subtle border border-success text-success-emphasis rounded-pill ms-1 small">
+                        MD5 32 · SHA-256 64 · SHA-512 128 hex chars
+                    </span>
+                </label>
+                <div class="input-group">
+                    <input type="text" id="rainbowHashInput"
+                           class="form-control bg-dark text-light border-secondary font-monospace small"
+                           placeholder="e.g. e10adc3949ba59abbe56e057f20f883e  (try hashes of: 123456 / password / Summer2024! / Ankit123)">
+                    <button class="btn btn-warning text-dark" onclick="runRainbowLookup()" id="rainbowLookupBtn">
+                        <i id="rainbowLookupIcon" class="fas fa-magnifying-glass me-1"></i>
+                        <span id="rainbowLookupLabel">Look Up</span>
+                    </button>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-light border-0"
+                            onclick="populateRainbowDemo('123456')">
+                        <i class="fas fa-wand-magic-sparkles"></i> Try: 123456
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light border-0"
+                            onclick="populateRainbowDemo('password')">
+                        <i class="fas fa-wand-magic-sparkles"></i> Try: password
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light border-0"
+                            onclick="populateRainbowDemo('Summer2024!')">
+                        <i class="fas fa-wand-magic-sparkles"></i> Try: Summer2024!
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light border-0"
+                            onclick="populateRainbowDemo('A9#jPk!Lx2@M')">
+                        <i class="fas fa-shield-halved"></i> Try: Strong (no match)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success border-0"
+                            onclick="document.getElementById('rainbowHashInput').value=''">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <span class="form-label d-block mb-2 text-nowrap">Dictionary Size</span>
+                <div class="d-grid gap-1 small text-light">
+                    <div class="d-flex justify-content-between">
+                        <span>MD5 rows</span><span class="font-monospace">{{ rainbow_counts.md5 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>SHA-256 rows</span><span class="font-monospace">{{ rainbow_counts.sha256 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>SHA-512 rows</span><span class="font-monospace">{{ rainbow_counts.sha512 }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 small">
+                <span class="form-label d-block mb-2 text-nowrap">Algo Detection</span>
+                <div id="rainbowAlgoBadge" class="d-flex flex-column gap-1">
+                    <span class="badge bg-secondary rounded-pill text-start small">
+                        <i class="fas fa-circle-question me-1"></i>MD5 — —
+                    </span>
+                    <span class="badge bg-secondary rounded-pill text-start small">
+                        <i class="fas fa-circle-question me-1"></i>SHA-256 — —
+                    </span>
+                    <span class="badge bg-secondary rounded-pill text-start small">
+                        <i class="fas fa-circle-question me-1"></i>SHA-512 — —
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="rainbowResultCard" class="card bg-dark border border-secondary d-none">
+            <div id="rainbowResultHeader" class="card-header d-flex align-items-center gap-2">
+                <i id="rainbowResultIcon" class="fas"></i>
+                <h6 id="rainbowResultTitle" class="mb-0 text-white"></h6>
+            </div>
+            <div class="card-body small">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-uppercase fw-semibold text-light opacity-75 mb-1">Input Hash</div>
+                        <div id="rainbowResHash" class="font-monospace text-break"></div>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="text-uppercase fw-semibold text-light opacity-75 mb-1">Algorithm</div>
+                        <div id="rainbowResAlgo" class="font-monospace"></div>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="text-uppercase fw-semibold text-light opacity-75 mb-1">Match Category</div>
+                        <div id="rainbowResCategory" class="font-monospace"></div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-uppercase fw-semibold text-light opacity-75 mb-1">Plaintext (if found)</div>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="rainbowResPlain" class="form-control bg-dark text-light border-secondary font-monospace fw-bold" readonly>
+                            <button class="btn btn-sm btn-outline-success" onclick="copyTextById('rainbowResPlain')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <div class="text-uppercase fw-semibold text-light opacity-75 mb-1">Educational Notes</div>
+                        <p id="rainbowResNotes" class="text-light mb-0"></p>
+                    </div>
+                </div>
+                <div id="rainbowResWarning" class="alert alert-info bg-info bg-opacity-10 border border-info-subtle text-light mt-3 mb-0 small" role="alert">
+                    <i class="fas fa-lightbulb me-1 text-info"></i>
+                    <span id="rainbowResWarningText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card bg-dark border border-secondary glass-card">
     <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+        <h5 class="mb-0 text-white"><i class="fas fa-history me-2 text-success"></i>Recent Activity</h5>
         <a href="/history" class="btn btn-sm btn-outline-success">View All</a>
     </div>
     <div class="card-body">
@@ -239,7 +398,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted text-center">No recent activity</p>
+        <p class="text-light opacity-75 text-center">No recent activity</p>
         {% endif %}
     </div>
 </div>

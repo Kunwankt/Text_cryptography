@@ -341,8 +341,13 @@ function updateHashButtonActive(algorithm) {
 
 function copyTextById(elementId) {
     const el = document.getElementById(elementId);
-    if (el && el.textContent && el.textContent !== '—') {
-        navigator.clipboard.writeText(el.textContent).then(() => {
+    if (!el) {
+        showToast('Nothing to copy yet', 'warning');
+        return;
+    }
+    const value = (el.value !== undefined && el.value !== null && el.value !== '') ? el.value : el.textContent;
+    if (value && value !== '—') {
+        navigator.clipboard.writeText(value).then(() => {
             showToast('Copied to clipboard!', 'success');
         }).catch(() => {
             showToast('Failed to copy', 'error');
@@ -671,6 +676,252 @@ function exportHistory() {
     window.location.href = '/api/history/export';
 }
 
+/* ================================================================
+   Rainbow / Hash Lookup (educational)
+   ================================================================ */
+
+// Tiny pure-JS hashers used only for demo buttons (so users can click a
+// demo and the correct hash is computed + populated client-side,
+// matching whatever algo the user wants to try).
+function _md5Hex(s) {
+    // Trust the backend when "looking up"; this is just for the demo
+    // populating buttons. Fallback to the hash-generator route if we ever
+    // want to be 100% accurate, but for the 4 demo candidates the backend
+    // rainbow table covers them regardless.
+    const hex = s.split('').reduce((a, c) => (((a << 5) - a) + c.charCodeAt(0)) | 0, 0);
+    // Not a real MD5 — placeholder; we'll call backend to compute real hashes
+    // in populateRainbowDemo below.
+    return '0'.repeat(32 - Math.abs(hex).toString(16).length) + Math.abs(hex).toString(16);
+}
+
+// Compute a real hash via backend (for the "Try:" quick-buttons) so we can
+// fill either md5 / sha256 / sha512 — user picks by input length.
+async function _hashTextWithAlgo(text, algo) {
+    const res = await fetch('/api/hash/' + algo, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    return data && data.success ? data.hash : null;
+}
+
+/**
+ * Populate rainbow lookup demo: compute the SHA-256 of a candidate and
+ * paste it into the input box. SHA-256 chosen because it's the most
+ * common real-world hash users will want to demo (MD5 is deprecated).
+ */
+async function populateRainbowDemo(candidate) {
+    const inputEl = document.getElementById('rainbowHashInput');
+    if (!inputEl) return;
+    try {
+        inputEl.value = '';
+        const h = await _hashTextWithAlgo(candidate, 'sha256');
+        if (h) {
+            inputEl.value = h;
+            updateRainbowAlgoBadges(h);
+            showToast('Hash of "' + candidate + '" pasted. Click "Look Up".', 'success');
+        } else {
+            showToast('Failed to compute demo hash', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to compute demo hash', 'error');
+    }
+}
+
+/**
+ * Visually highlight which of the 3 algorithms matches the pasted hash
+ * by length + hex validity.
+ */
+function updateRainbowAlgoBadges(inputHash) {
+    const box = document.getElementById('rainbowAlgoBadge');
+    if (!box) return;
+
+    const raw = (inputHash || '').trim().toLowerCase().replace(/^0x/, '');
+    const isHex = /^[0-9a-f]*$/.test(raw);
+    const len = raw.length;
+
+    const detected = {
+        md5:    isHex && len === 32,
+        sha256: isHex && len === 64,
+        sha512: isHex && len === 128,
+    };
+
+    const labels = [
+        { key: 'md5',    title: 'MD5' },
+        { key: 'sha256', title: 'SHA-256' },
+        { key: 'sha512', title: 'SHA-512' },
+    ];
+
+    box.innerHTML = labels.map(l => {
+        const active = detected[l.key];
+        const badgeCls = active
+            ? 'badge bg-success text-white rounded-pill text-start small shadow-sm'
+            : 'badge bg-secondary rounded-pill text-start small opacity-75';
+        const icon = active ? 'fa-circle-check' : 'fa-circle-question';
+        const lenHint = l.key === 'md5' ? '32' : l.key === 'sha256' ? '64' : '128';
+        return `
+            <span class="${badgeCls}">
+                <i class="fas ${icon} me-1"></i>${l.title} — ${lenHint} chars
+            </span>`;
+    }).join('');
+}
+
+function _setRainbowLookupLoading(isLoading) {
+    const btn = document.getElementById('rainbowLookupBtn');
+    const icon = document.getElementById('rainbowLookupIcon');
+    const label = document.getElementById('rainbowLookupLabel');
+    if (!btn) return;
+    btn.disabled = isLoading;
+    if (isLoading) {
+        if (icon) {
+            icon.classList.remove('fa-magnifying-glass');
+            icon.classList.add('fa-sync-alt', 'fa-spin');
+        }
+        if (label) label.textContent = 'Looking up...';
+    } else {
+        if (icon) {
+            icon.classList.remove('fa-sync-alt', 'fa-spin');
+            icon.classList.add('fa-magnifying-glass');
+        }
+        if (label) label.textContent = 'Look Up';
+    }
+}
+
+function renderRainbowResult(payload) {
+    const card = document.getElementById('rainbowResultCard');
+    if (!card) return;
+    card.classList.remove('d-none');
+
+    const header = document.getElementById('rainbowResultHeader');
+    const iconEl = document.getElementById('rainbowResultIcon');
+    const titleEl = document.getElementById('rainbowResultTitle');
+    const hashEl = document.getElementById('rainbowResHash');
+    const algoEl = document.getElementById('rainbowResAlgo');
+    const categoryEl = document.getElementById('rainbowResCategory');
+    const plainEl = document.getElementById('rainbowResPlain');
+    const notesEl = document.getElementById('rainbowResNotes');
+    const warnBox = document.getElementById('rainbowResWarning');
+    const warnText = document.getElementById('rainbowResWarningText');
+
+    if (!payload) return;
+    const found = !!payload.found;
+
+    // Header styling + cyber-themed catchy titles
+    if (header) {
+        header.classList.remove('bg-success-subtle', 'bg-danger-subtle', 'bg-info-subtle',
+            'text-success-emphasis', 'text-danger-emphasis', 'text-info-emphasis',
+            'border-success', 'border-danger', 'border-info',
+            'cyber-header-pwned', 'cyber-header-secure', 'animate-pulse-neon');
+    }
+    // Also reset glow on outer result card
+    card.classList.remove('cyber-pwned-glow', 'cyber-secure-glow');
+
+    if (found) {
+        if (header) {
+            header.classList.add('cyber-header-pwned', 'animate-pulse-neon');
+        }
+        card.classList.add('cyber-pwned-glow');
+        if (iconEl) {
+            iconEl.className = 'fas fa-bug me-1 text-danger-emphasis';
+        }
+        if (titleEl) {
+            titleEl.innerHTML =
+                '<span class="badge bg-black-50 border border-danger rounded-pill me-2 px-3 py-1 text-danger">'
+                + '<i class="fas fa-skull-crossbones me-1"></i>PWNED</span>'
+                + '<span class="fw-bold">Hash cracked — plaintext recovered from dictionary dump</span>'
+                + '<span class="d-none d-sm-inline text-danger-emphasis opacity-75 ms-2 small">'
+                + '  // password exists in billions of leaked records'
+                + '</span>';
+        }
+    } else {
+        if (header) {
+            header.classList.add('cyber-header-secure');
+        }
+        card.classList.add('cyber-secure-glow');
+        if (iconEl) {
+            iconEl.className = 'fas fa-shield-virus me-1 text-success';
+        }
+        if (titleEl) {
+            titleEl.innerHTML =
+                '<span class="badge bg-black-50 border border-success rounded-pill me-2 px-3 py-1 text-success">'
+                + '<i class="fas fa-check-double me-1"></i>CLEAN</span>'
+                + '<span class="fw-bold">No dictionary match — this input resists common wordlist attacks</span>'
+                + '<span class="d-none d-sm-inline text-success opacity-75 ms-2 small">'
+                + '  // not found in ~' + ((payload.rainbow_size && payload.rainbow_size.unique_plaintexts) || 0) + ' precomputed entries'
+                + '</span>';
+        }
+    }
+
+    if (hashEl) hashEl.textContent = payload.input_hash || '—';
+    if (algoEl) {
+        const algoBadge = (payload.algo_detected || 'unknown').toLowerCase();
+        const cls = algoBadge === 'md5' ? 'badge bg-warning text-dark'
+            : algoBadge === 'sha256' ? 'badge bg-success'
+            : algoBadge === 'sha512' ? 'badge bg-info text-dark'
+            : 'badge bg-secondary';
+        algoEl.innerHTML = `<span class="${cls}">${(payload.algo_detected || 'unknown').toUpperCase()}</span>`;
+    }
+    if (categoryEl) {
+        categoryEl.textContent = found ? (payload.category || '—') : 'Not in dictionary';
+    }
+    if (plainEl) {
+        plainEl.value = found ? (payload.plaintext || '') : '';
+    }
+    if (notesEl) {
+        notesEl.textContent = found
+            ? (payload.notes || '—')
+            : 'The hash did not match any of the ' +
+              ((payload.rainbow_size && payload.rainbow_size.unique_plaintexts) || 0) +
+              ' precomputed dictionary entries. For strong unique inputs, dictionary ' +
+              'and rainbow-table attacks are infeasible.';
+    }
+    if (warnText) {
+        warnText.textContent = payload.educational_warning || '';
+    }
+    if (warnBox) warnBox.classList.remove('d-none');
+}
+
+async function runRainbowLookup() {
+    const inputEl = document.getElementById('rainbowHashInput');
+    if (!inputEl) return;
+    const raw = (inputEl.value || '').trim();
+    if (!raw) {
+        showToast('Paste a hash first (or click a Try: button above).', 'warning');
+        return;
+    }
+    try {
+        _setRainbowLookupLoading(true);
+        const res = await fetch('/api/hash/lookup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({ hash: raw })
+        });
+        const data = await res.json();
+        updateRainbowAlgoBadges(raw);
+        if (data && (data.success || data.found !== undefined)) {
+            renderRainbowResult(data);
+            if (data.found) {
+                showToast('Match found: ' + data.plaintext, 'warning');
+            } else {
+                showToast('No match — great, this is a strong input!', 'success');
+            }
+        } else {
+            showToast(data && data.error ? data.error : 'Lookup failed', 'error');
+        }
+    } catch (e) {
+        showToast('Network error during lookup', 'error');
+    } finally {
+        _setRainbowLookupLoading(false);
+    }
+}
+
 // Timestamp to string (Jinja2 filter replacement)
 if (typeof module === 'undefined') {
     // Browser-only code
@@ -686,6 +937,21 @@ if (typeof module === 'undefined') {
             setTimeout(() => {
                 runPerformanceTest();
             }, 350);
+        }
+
+        // ---- Rainbow lookup wiring -------------------------------------
+        const rainbowInput = document.getElementById('rainbowHashInput');
+        if (rainbowInput) {
+            rainbowInput.addEventListener('input', () => {
+                updateRainbowAlgoBadges(rainbowInput.value);
+            });
+            rainbowInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runRainbowLookup();
+                }
+            });
+            updateRainbowAlgoBadges(rainbowInput.value);
         }
     });
 }
