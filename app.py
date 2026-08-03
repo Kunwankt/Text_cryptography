@@ -83,6 +83,33 @@ def init_db():
                 logger.warning("Failed to close DB connection after init_db: %s", exc)
 
 
+def _ensure_history_table(conn: sqlite3.Connection) -> None:
+    """Lazy, idempotent history table bootstrap.
+
+    ``init_db()`` only runs under ``if __name__ == '__main__'``. When this app
+    is served by Gunicorn / uWSGI / Render / Docker with ``gunicorn app:app``,
+    the ``__main__`` block is skipped entirely and the ``history`` table never
+    gets created, producing ``OperationalError: no such table: history`` on the
+    first encrypt/hash request.
+
+    This tiny helper guarantees the table exists before *any* SQLite consumer
+    touches it. It uses ``CREATE TABLE IF NOT EXISTS`` so it is a no-op when
+    the table is already present (safe to call on every request; the SQLite
+    parser short-circuits it quickly).
+    """
+    try:
+        conn.execute(
+            '''CREATE TABLE IF NOT EXISTS history
+               (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                algorithm TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                timestamp REAL NOT NULL)'''
+        )
+        conn.commit()
+    except sqlite3.Error as exc:
+        logger.warning("Failed to ensure history table exists: %s", exc)
+
+
 def add_to_history(algorithm, operation):
     """Add entry to history. This is a best-effort operation — DB errors are logged
     and never propagated so that encryption/hash APIs still succeed when history is
@@ -93,6 +120,7 @@ def add_to_history(algorithm, operation):
     conn = None
     try:
         conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        _ensure_history_table(conn)
         c = conn.cursor()
         c.execute(
             'INSERT INTO history (algorithm, operation, timestamp) VALUES (?, ?, ?)',
@@ -126,6 +154,7 @@ def get_history():
     conn = None
     try:
         conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        _ensure_history_table(conn)
         c = conn.cursor()
         c.execute('SELECT * FROM history ORDER BY timestamp DESC')
         rows = c.fetchall()
@@ -158,6 +187,7 @@ def delete_history_entry(entry_id):
     conn = None
     try:
         conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        _ensure_history_table(conn)
         c = conn.cursor()
         c.execute('DELETE FROM history WHERE id = ?', (entry_id,))
         conn.commit()
@@ -183,6 +213,7 @@ def clear_history():
     conn = None
     try:
         conn = sqlite3.connect(app.config['DATABASE_PATH'])
+        _ensure_history_table(conn)
         c = conn.cursor()
         c.execute('DELETE FROM history')
         conn.commit()

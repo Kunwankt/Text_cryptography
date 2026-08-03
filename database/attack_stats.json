@@ -1,12 +1,12 @@
 {
-  "total_simulations": 118,
+  "total_simulations": 119,
   "strong_passwords_tested": 21,
-  "weak_passwords_tested": 72,
-  "total_score_sum": 4557,
+  "weak_passwords_tested": 73,
+  "total_score_sum": 4562,
   "per_attack_count": {
     "brute_force": 41,
     "dictionary": 37,
     "rainbow_table": 16,
-    "hybrid": 24
+    "hybrid": 25
   }
 }
