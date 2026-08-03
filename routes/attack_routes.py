@@ -23,6 +23,13 @@ from utils.attack_sim import (
     parse_hints,
     simulate_attack,
 )
+from firebase.log_service import (
+    LogContext,
+    log_attack_simulation,
+    OP_ATTACK_SIMULATION,
+    STATUS_SUCCESS,
+    STATUS_FAILED,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +150,19 @@ def api_simulate():
         return jsonify({"success": False, "error": "Password too long (max 128 chars)."}), 400
 
     try:
-        result = simulate_attack(attack_id, password, hints=normalized_hints or None)
+        with LogContext(attack_id, OP_ATTACK_SIMULATION, len(password)) as ctx:
+            result = simulate_attack(attack_id, password, hints=normalized_hints or None)
+            # Attach useful categorization metadata to the Firestore document.
+            try:
+                extra = ctx.setdefault("extra", {})
+                extra["score"] = int(result.score)
+                extra["strength"] = str(getattr(result, "strength", ""))
+                extra["risk"] = str(getattr(result, "risk", ""))
+                extra["cracked"] = bool(getattr(result, "cracked", False))
+                extra["early_exited"] = bool(getattr(result, "early_exited", False))
+                extra["hints_count"] = len(parse_hints(normalized_hints))
+            except Exception:
+                pass
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Attack simulation failed")
         return jsonify({"success": False, "error": f"Simulation error: {exc}"}), 500
@@ -333,7 +352,16 @@ def api_download_report():
         return jsonify({"success": False, "error": "Password too long (max 128 chars)."}), 400
 
     try:
-        result = simulate_attack(attack_id, password, hints=normalized_hints or None)
+        with LogContext(attack_id, OP_ATTACK_SIMULATION, len(password)) as ctx:
+            result = simulate_attack(attack_id, password, hints=normalized_hints or None)
+            try:
+                extra = ctx.setdefault("extra", {})
+                extra["report_download"] = True
+                extra["report_format"] = fmt
+                extra["score"] = int(result.score)
+                extra["cracked"] = bool(getattr(result, "cracked", False))
+            except Exception:
+                pass
     except Exception as exc:
         logger.exception("Attack simulation failed for download")
         return jsonify({"success": False, "error": f"Simulation error: {exc}"}), 500
