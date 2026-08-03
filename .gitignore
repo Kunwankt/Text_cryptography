@@ -3,6 +3,9 @@
 .env
 .env.*
 !.env.example
+firebase-key.json
+firebase-service-account.json
+*.service-account.json
 
 # Virtual environments
 .venv/

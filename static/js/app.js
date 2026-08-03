@@ -307,34 +307,28 @@ function updateHashButtonActive(algorithm) {
     const btnSha512 = document.getElementById('hashBtnSha512');
     const btnMd5 = document.getElementById('hashBtnMd5');
 
-    const buttons = [
-        { btn: btnSha256, algo: 'sha256', success: true },
-        { btn: btnSha512, algo: 'sha512', success: true },
-        { btn: btnMd5, algo: 'md5', success: false }
-    ];
-
-    buttons.forEach(item => {
-        if (!item.btn) return;
-        item.btn.classList.remove('btn-success', 'btn-warning', 'active');
-        if (item.success) {
-            item.btn.classList.remove('btn-outline-success');
-            item.btn.classList.add('btn-outline-success');
-        } else {
-            item.btn.classList.remove('btn-outline-warning');
-            item.btn.classList.add('btn-outline-warning');
-        }
+    // Step 1: Reset ALL buttons to OUTLINE state (inactive)
+    [btnSha256, btnSha512].forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove('btn-success', 'active', 'shadow', 'shadow-success');
+        btn.classList.add('btn-outline-success');
     });
+    if (btnMd5) {
+        btnMd5.classList.remove('btn-warning', 'active', 'shadow', 'shadow-warning');
+        btnMd5.classList.add('btn-outline-warning');
+    }
 
+    // Step 2: Set SELECTED button to SOLID state (active)
     const activeMap = { sha256: btnSha256, sha512: btnSha512, md5: btnMd5 };
     const activeBtn = activeMap[algorithm];
     if (activeBtn) {
-        activeBtn.classList.add('active');
+        activeBtn.classList.add('active', 'shadow');
         if (algorithm === 'md5') {
             activeBtn.classList.remove('btn-outline-warning');
-            activeBtn.classList.add('btn-warning');
+            activeBtn.classList.add('btn-warning', 'shadow-warning');
         } else {
             activeBtn.classList.remove('btn-outline-success');
-            activeBtn.classList.add('btn-success');
+            activeBtn.classList.add('btn-success', 'shadow-success');
         }
     }
 }
@@ -557,6 +551,7 @@ async function runPerformanceTest() {
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             labels: { color: '#fff' }
