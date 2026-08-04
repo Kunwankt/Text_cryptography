@@ -3,15 +3,84 @@
 {% block title %}History - Multi Algorithm Text Encryption System{% endblock %}
 
 {% block content %}
-<h2 class="mb-4 text-success"><i class="fas fa-history me-2"></i>Encryption History</h2>
+<h2 class="mb-3 text-success"><i class="fas fa-history me-2"></i>Encryption History</h2>
 
-<div class="card bg-dark border border-secondary glass-card">
-    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Activity Log</h5>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-success" onclick="exportHistory()">
-                <i class="fas fa-download me-1"></i>Export CSV
-            </button>
+<!-- Top summary cards ------------------------------------------------------ -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="stat-card-label">Total Entries</h6>
+                <h3 class="text-success"><i class="fas fa-list-check me-2"></i>{{ history_counts.total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="stat-card-label">Synced to Firebase</h6>
+                <h3 class="{% if firebase_configured %}text-info{% else %}text-light opacity-75{% endif %}">
+                    <i class="fas fa-cloud me-2"></i>{{ history_counts.synced_firebase }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-body">
+                <h6 class="stat-card-label">Local Only (SQLite)</h6>
+                <h3 class="text-warning"><i class="fas fa-database me-2"></i>{{ history_counts.local_only }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase status banner -------------------------------------------------- -->
+{% if firebase_configured %}
+<div class="alert alert-info bg-info bg-opacity-10 border border-info-subtle mb-4" role="alert">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <i class="fas fa-cloud text-info fs-5"></i>
+        <div class="small text-light">
+            <strong class="text-info">Firebase Firestore is configured</strong> — every new activity log is
+            mirrored to the <code class="text-info">encryption_history</code> collection automatically.
+            Synced: <span class="font-monospace text-info">{{ history_counts.synced_firebase }}</span>
+            / {{ history_counts.total }} entries.
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-secondary bg-secondary bg-opacity-10 border border-secondary-subtle mb-4" role="alert">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <i class="fas fa-triangle-exclamation text-warning fs-5"></i>
+        <div class="small text-light">
+            <strong class="text-warning">Firebase Firestore not configured.</strong>
+            All activity logs are currently stored in the local SQLite database only.
+            To enable Firebase sync:
+            <ol class="mb-0 mt-1 ms-4">
+                <li>Install the package: <code class="text-success">pip install firebase-admin</code></li>
+                <li>Set one of: <code class="text-success">FIREBASE_SERVICE_ACCOUNT_JSON</code> env var (recommended),
+                    <code class="text-success">GOOGLE_APPLICATION_CREDENTIALS</code>,
+                    or drop a valid <code class="text-success">firebase-key.json</code> in the project root.</li>
+                <li>Restart the Flask app — new entries will sync automatically.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main history card ------------------------------------------------------- -->
+<div class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 text-white"><i class="fas fa-scroll me-1 text-success"></i>Activity Log</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <div class="btn-group me-1">
+                <button class="btn btn-sm btn-outline-success" onclick="exportHistory('csv')">
+                    <i class="fas fa-file-csv me-1"></i>Download CSV
+                </button>
+                <button class="btn btn-sm btn-outline-info" onclick="exportHistory('json')">
+                    <i class="fas fa-file-code me-1"></i>Download JSON
+                </button>
+            </div>
             <button class="btn btn-sm btn-outline-danger" onclick="clearHistory()">
                 <i class="fas fa-trash me-1"></i>Clear All
             </button>
@@ -20,25 +89,83 @@
     <div class="card-body">
         {% if history %}
         <div class="table-responsive">
-            <table class="table table-dark table-striped">
+            <table class="table table-dark table-sm table-hover align-middle mb-0">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Algorithm</th>
-                        <th>Operation</th>
-                        <th>Timestamp</th>
-                        <th>Action</th>
+                    <tr class="border-secondary">
+                        <th style="width:70px;">ID</th>
+                        <th style="width:150px;">Timestamp</th>
+                        <th style="width:130px;">Algorithm</th>
+                        <th style="width:130px;">Operation</th>
+                        <th style="width:90px;" class="text-end">Size</th>
+                        <th style="width:110px;" class="text-center">Status</th>
+                        <th style="width:140px;" class="text-center">Storage</th>
+                        <th style="width:90px;" class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in history %}
-                    <tr>
-                        <td>{{ item.id }}</td>
-                        <td>{{ item.algorithm }}</td>
-                        <td>{{ item.operation }}</td>
-                        <td>{{ item.timestamp|int|timestamp_to_str }}</td>
+                    <tr class="border-secondary-subtle">
+                        <td class="font-monospace text-light opacity-75">{{ item.id }}</td>
+                        <td><span class="text-light small">{{ item.timestamp|int|timestamp_to_str }}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteHistoryEntry({{ item.id }})">
+                            {% set algoClass = {
+                                'AES-256': 'bg-success',
+                                'DES':     'bg-warning text-dark',
+                                'RSA':     'bg-info',
+                                'SHA-256': 'bg-success',
+                                'SHA-512': 'bg-success',
+                                'MD5':     'bg-warning text-dark',
+                            }.get(item.algorithm, 'bg-secondary') %}
+                            <span class="badge {{ algoClass }} fs-6">{{ item.algorithm }}</span>
+                        </td>
+                        <td>
+                            {% set opClass = {
+                                'Encryption':           'text-primary',
+                                'Decryption':           'text-info',
+                                'Hash':                 'text-warning',
+                                'Performance Benchmark':'text-success-emphasis',
+                            }.get(item.operation, 'text-light') %}
+                            <span class="{{ opClass }}">{{ item.operation }}</span>
+                        </td>
+                        <td class="text-end font-monospace small text-light opacity-85">
+                            {% if item.content_length %}
+                                {{ item.content_length }} <span class="opacity-50">B</span>
+                            {% else %}
+                                <span class="opacity-25">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.status == 'success' %}
+                                <span class="badge bg-success-subtle border border-success text-success-emphasis rounded-pill px-3">
+                                    <i class="fas fa-circle-check me-1"></i>Success
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle border border-danger text-danger-emphasis rounded-pill px-3">
+                                    <i class="fas fa-circle-xmark me-1"></i>{{ item.status or 'failed' }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.synced_firebase %}
+                                <span class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill"
+                                      title="Synced to Firestore doc {{ item.firestore_doc_id }}">
+                                    <i class="fas fa-cloud me-1"></i>Firebase
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle border border-warning text-warning-emphasis rounded-pill"
+                                      {% if not firebase_configured %}
+                                          title="Local SQLite only — Firebase is not configured."
+                                      {% else %}
+                                          title="Local SQLite only (sync pending or disabled)."
+                                      {% endif %}>
+                                    <i class="fas fa-database me-1"></i>Local
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger border-0"
+                                    onclick="deleteHistoryEntry({{ item.id }})"
+                                    title="Delete history entry #{{ item.id }}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -48,7 +175,10 @@
             </table>
         </div>
         {% else %}
-        <p class="text-light opacity-75 text-center py-5">No history entries yet. Start encrypting/decrypting!</p>
+        <p class="text-light opacity-75 text-center py-5">
+            <i class="fas fa-clock-rotate-left me-2 opacity-50"></i>
+            No history entries yet. Start encrypting/decrypting or generate a hash to populate the log!
+        </p>
         {% endif %}
     </div>
 </div>

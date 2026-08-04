@@ -666,9 +666,12 @@ async function clearHistory() {
     }
 }
 
-// Export history
-function exportHistory() {
-    window.location.href = '/api/history/export';
+// Export history — supports 'csv' (default) or 'json' formats
+function exportHistory(fmt) {
+    const format = (typeof fmt === 'string' ? fmt : 'csv').toLowerCase();
+    const validFormats = new Set(['csv', 'json']);
+    const useFormat = validFormats.has(format) ? format : 'csv';
+    window.location.href = '/api/history/export?format=' + encodeURIComponent(useFormat);
 }
 
 /* ================================================================
