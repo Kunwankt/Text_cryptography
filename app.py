@@ -29,13 +29,25 @@ app.register_blueprint(attack_bp)
 # ---------------------------------------------------------------------------
 # Firebase / Firestore (optional). Only writes when configured.
 # ---------------------------------------------------------------------------
+FIRESTORE_PROJECT_ID: str | None = None
 try:
     from firebase.firebase_config import db as FIRESTORE_DB  # type: ignore
+    from firebase.firebase_config import project_id as _fb_project_id  # type: ignore
+    FIRESTORE_PROJECT_ID = _fb_project_id
     if FIRESTORE_DB is None:
-        logger.info("Firebase/Firestore not configured — all logs stay in local SQLite.")
+        logger.warning(
+            "Firebase/Firestore not configured (firebase_config.db == None). "
+            "All logs stay in local SQLite only. Check: (1) pip install firebase-admin "
+            "(2) FIREBASE_SERVICE_ACCOUNT_JSON env var OR firebase-key.json in project root. "
+            "Restart app after fixing."
+        )
 except Exception as exc:  # noqa: BLE001
     FIRESTORE_DB = None
-    logger.info("Firebase module import skipped (%s) — continuing with local-only history.", exc)
+    logger.warning(
+        "Firebase module import FAILED (%s: %s) — continuing with local-only SQLite history. "
+        "Fix the import error above then restart the Flask app to enable Firestore sync.",
+        type(exc).__name__, str(exc),
+    )
 FIRESTORE_COLLECTION = "encryption_history"
 
 
@@ -390,6 +402,8 @@ def inject_globals():
         pass
     return {
         "firebase_configured": FIRESTORE_DB is not None,
+        "firebase_project_id": FIRESTORE_PROJECT_ID,
+        "firestore_collection": FIRESTORE_COLLECTION,
         "history_counts": {
             "total": total_count,
             "synced_firebase": synced_count,

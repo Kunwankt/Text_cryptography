@@ -135,6 +135,7 @@ def _build_credential():
 _cred, _project, _options = _build_credential()
 _app = None
 db = None
+project_id: Optional[str] = _project
 
 if _cred is not None:
     try:
