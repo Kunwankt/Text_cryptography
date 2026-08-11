@@ -36,7 +36,7 @@ except Exception:  # pragma: no cover - defensive import guard at runtime
 
 logger = logging.getLogger(__name__)
 
-COLLECTION_NAME = "logs"
+COLLECTION_NAME = "encryption_history"
 
 # ---------------------------------------------------------------------------
 # Operation constants — defined here so every caller uses the same strings.

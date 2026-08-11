@@ -3,7 +3,7 @@ import sqlite3
 import time
 import base64
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, jsonify, send_file, make_response, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from config import Config
@@ -30,9 +30,15 @@ app.register_blueprint(attack_bp)
 # Firebase / Firestore (optional). Only writes when configured.
 # ---------------------------------------------------------------------------
 FIRESTORE_PROJECT_ID: str | None = None
+FIRESTORE_IMPORTED_FS = None
 try:
     from firebase.firebase_config import db as FIRESTORE_DB  # type: ignore
     from firebase.firebase_config import project_id as _fb_project_id  # type: ignore
+    try:
+        from firebase_admin import firestore as _fs  # type: ignore  # noqa: WPS433
+        FIRESTORE_IMPORTED_FS = _fs
+    except Exception:  # pragma: no cover
+        FIRESTORE_IMPORTED_FS = None
     FIRESTORE_PROJECT_ID = _fb_project_id
     if FIRESTORE_DB is None:
         logger.warning(
@@ -49,6 +55,7 @@ except Exception as exc:  # noqa: BLE001
         type(exc).__name__, str(exc),
     )
 FIRESTORE_COLLECTION = "encryption_history"
+LOG_SOURCE = "text-encryption-flask-app"
 
 
 def timestamp_to_str(ts):
@@ -169,36 +176,150 @@ def _get_client_ip() -> str:
 
 
 def _firestore_add_history(doc_id: str, payload: dict) -> bool:
-    """Firestore write — best-effort, returns True only when succeeded."""
+    """Firestore write — best-effort, returns True only when succeeded.
+
+    ALWAYS ensures the 9 required top-level fields exist, per project spec:
+      algorithm, operation, client_ip, content_length,
+      local_time, execution_time, source, status, timestamp.
+
+    ``timestamp`` uses ``firestore.SERVER_TIMESTAMP`` when available so the
+    Firestore console shows a real, queryable Timestamp (not a float / string).
+    ``local_time`` is an ISO-8601 string wall-clock snapshot from the server.
+    ``execution_time`` is seconds (float), rounded to 6 decimals.
+    """
     if FIRESTORE_DB is None:
         return False
+
     try:
+        # Build final payload guaranteeing every required field.
+        safe_payload: dict = {}
+        safe_payload["algorithm"] = str(payload.get("algorithm") or "unknown")
+        safe_payload["operation"] = str(payload.get("operation") or "unknown")
+        safe_payload["client_ip"] = str(payload.get("client_ip") or "")
+        safe_payload["content_length"] = int(payload.get("content_length") or 0)
+        safe_payload["local_time"] = str(
+            payload.get("local_time")
+            or datetime.now(timezone.utc).isoformat(timespec="seconds")
+        )
+        try:
+            safe_payload["execution_time"] = round(
+                float(payload.get("execution_time") or 0.0), 6
+            )
+        except (TypeError, ValueError):
+            safe_payload["execution_time"] = 0.0
+        safe_payload["source"] = str(payload.get("source") or LOG_SOURCE)
+        status_val = str(payload.get("status") or "Success")
+        if status_val.lower() == "success":
+            status_val = "Success"
+        elif status_val.lower() in ("failed", "failure", "error"):
+            status_val = "Failed"
+        safe_payload["status"] = status_val
+
+        # Timestamp: prefer firestore SERVER_TIMESTAMP so it is a true Firestore
+        # Timestamp type, sortable/queryable in Firestore console.
+        if FIRESTORE_IMPORTED_FS is not None:
+            safe_payload["timestamp"] = FIRESTORE_IMPORTED_FS.SERVER_TIMESTAMP
+        else:
+            # Final fallback: use a timezone-aware datetime string
+            safe_payload["timestamp"] = datetime.now(timezone.utc).isoformat(
+                timespec="seconds"
+            )
+
+        # Preserve any legacy/debug metadata (optional extras) if it won't clash
+        for key in ("local_id", "timestamp_iso", "client_ip_hash",
+                    "synced_firebase", "firestore_doc_id",
+                    "firebase_doc_id", "notes"):
+            if key in payload and key not in safe_payload:
+                safe_payload[key] = payload[key]
+
         # firestore.client().collection(c).document(id).set(payload)
-        FIRESTORE_DB.collection(FIRESTORE_COLLECTION).document(doc_id).set(payload)
-        logger.info("Firestore synced entry %s/%s", payload.get("algorithm"), payload.get("operation"))
+        FIRESTORE_DB.collection(FIRESTORE_COLLECTION).document(doc_id).set(safe_payload)
+        logger.info(
+            "Firestore synced entry %s/%s (exec=%.4fs len=%d ip=%s)",
+            safe_payload.get("algorithm"),
+            safe_payload.get("operation"),
+            float(safe_payload.get("execution_time") or 0.0),
+            int(safe_payload.get("content_length") or 0),
+            safe_payload.get("client_ip") or "-",
+        )
         return True
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Firestore write failed for doc_id %s: %s", doc_id, exc)
+        # Ensure silent Firebase exceptions are still surfaced in server logs
+        # (and NOT swallowed silently).
+        logger.warning(
+            "Firestore write FAILED for doc_id=%s algo=%s op=%s :: "
+            "exception_type=%s message=%s",
+            doc_id,
+            payload.get("algorithm"),
+            payload.get("operation"),
+            type(exc).__name__,
+            str(exc),
+            exc_info=True,
+        )
         return False
 
 
-def add_to_history(algorithm, operation, content_length: int = 0, status: str = "success"):
+def add_to_history(
+    algorithm,
+    operation,
+    content_length: int = 0,
+    status: str = "success",
+    client_ip: str | None = None,
+    execution_time: float = 0.0,
+    local_time_iso: str | None = None,
+    source: str | None = None,
+    doc_id_override: str | None = None,
+):
     """Add entry to SQLite history AND (optionally) Firebase Firestore.
 
-    This is always best-effort. Any exception is swallowed and logged; the
-    caller (encrypt/decrypt/hash APIs) continues to succeed even when the
-    history layer is unavailable, so users never lose their encryption
-    result due to a logging outage.
+    This is ALWAYS called AFTER a successful encrypt/decrypt/hash operation.
+    The caller SHOULD pass:
+      - ``client_ip``       : from ``_get_client_ip()``
+      - ``execution_time``  : ``end - start`` from ``time.perf_counter()``
+      - ``local_time_iso``  : ISO-8601 snapshot taken during the request
+    If any are omitted we still compute sensible defaults so Firestore NEVER
+    receives an empty required field.
 
-    Returns a dict with ``{sqlite: bool, firestore: bool|None, id: int|None}``
-    so callers (and tests) can introspect what actually happened.
+    This is best-effort — any exception is swallowed + logged; the caller
+    (encrypt/decrypt/hash APIs) continues to succeed even when logging is
+    unavailable, so users never lose their operation result.
+
+    Returns dict with
+      ``{sqlite: bool, firestore: bool|None, id: int|None, synced_firebase: 0|1,
+         doc_id: str|None, client_ip: str, execution_time: float}``
+    so callers (API responses) can introspect what actually happened and
+    surface logging-sync status in HTTP responses for verification/testing.
     """
-    result = {"sqlite": False, "firestore": None, "id": None, "synced_firebase": 0}
+    result = {
+        "sqlite": False,
+        "firestore": None,
+        "id": None,
+        "synced_firebase": 0,
+        "doc_id": None,
+        "client_ip": "",
+        "execution_time": max(0.0, float(execution_time or 0.0)),
+        "local_time": "",
+    }
     if not _ensure_db_dir():
         return result
 
     ts = time.time()
-    client_ip = _get_client_ip()
+
+    # --- Resolve all required fields (use explicit arg if provided else fallback) ---
+    resolved_ip = client_ip if client_ip is not None else _get_client_ip()
+    result["client_ip"] = str(resolved_ip or "")
+
+    if local_time_iso:
+        resolved_local_time = str(local_time_iso)
+    else:
+        # Capture once and reuse so SQLite + Firestore agree exactly.
+        resolved_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    result["local_time"] = resolved_local_time
+
+    resolved_exec = max(0.0, float(execution_time or 0.0))
+    resolved_status = str(status or "success")
+    resolved_source = str(source or LOG_SOURCE)
+
     conn = None
     local_id = None
     doc_id = None
@@ -210,14 +331,24 @@ def add_to_history(algorithm, operation, content_length: int = 0, status: str = 
             '''INSERT INTO history
                (algorithm, operation, timestamp, content_length, client_ip, status, synced_firebase, firestore_doc_id)
                VALUES (?, ?, ?, ?, ?, ?, 0, '')''',
-            (algorithm, operation, ts, int(content_length or 0), client_ip, str(status or "success")),
+            (
+                algorithm,
+                operation,
+                ts,
+                int(content_length or 0),
+                result["client_ip"],
+                resolved_status,
+            ),
         )
         local_id = c.lastrowid
         conn.commit()
         result["sqlite"] = True
         result["id"] = local_id
     except (sqlite3.Error, OSError) as exc:
-        logger.error("SQLite history insert failed [%s/%s]: %s", algorithm, operation, exc)
+        logger.error(
+            "SQLite history insert FAILED [%s/%s]: %s (exc_type=%s)",
+            algorithm, operation, exc, type(exc).__name__,
+        )
     finally:
         if conn is not None:
             try:
@@ -225,26 +356,34 @@ def add_to_history(algorithm, operation, content_length: int = 0, status: str = 
             except sqlite3.Error as exc:
                 logger.warning("Failed to close DB after add_to_history: %s", exc)
 
-    # --- Firestore mirror (optional) -----------------------------------------------------
+    # --- Firestore mirror (optional, but ALWAYS attempt with full 9 fields) ---
     if local_id is not None and FIRESTORE_DB is not None:
-        # Stable doc id so re-runs don't create duplicates
-        doc_id = f"{int(ts * 1000)}-{local_id}-{algorithm}"
-        payload = {
+        # Stable doc id so re-runs don't create duplicates.  If caller
+        # explicitly overrides (e.g. retry uploads), honor that.
+        if doc_id_override:
+            doc_id = str(doc_id_override)
+        else:
+            doc_id = f"{int(ts * 1000)}-{local_id}-{algorithm}"
+
+        fs_payload = {
             "local_id": local_id,
             "algorithm": algorithm,
             "operation": operation,
-            "timestamp": ts,
+            "timestamp": ts,  # used only by old query paths; overridden below
             "timestamp_iso": datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
             "content_length": int(content_length or 0),
-            "client_ip_hash": "n/a",
-            "status": str(status or "success"),
-            "source": "text-encryption-flask-app",
+            "client_ip": result["client_ip"],
+            "status": resolved_status,
+            "source": resolved_source,
+            "local_time": resolved_local_time,
+            "execution_time": resolved_exec,
         }
-        synced = _firestore_add_history(doc_id, payload)
-        result["firestore"] = synced
+        synced = _firestore_add_history(doc_id, fs_payload)
+        result["firestore"] = bool(synced)
         result["synced_firebase"] = 1 if synced else 0
+        result["doc_id"] = doc_id if synced else ""
 
-        # Reflect sync status back to SQLite for UI badges
+        # Reflect sync status back to SQLite for UI badges (for dashboard + history pages)
         if synced and _ensure_db_dir():
             try:
                 conn2 = sqlite3.connect(app.config['DATABASE_PATH'])
@@ -473,11 +612,43 @@ def encrypt_aes():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
         key = base64.b64decode(key_b64)
-        ciphertext = AES256Cipher.encrypt(plaintext, key)
-        add_to_history('AES-256', 'Encryption', content_length=len(plaintext), status='success')
 
-        return jsonify({'success': True, 'ciphertext': ciphertext})
+        _t0 = time.perf_counter()
+        ciphertext = AES256Cipher.encrypt(plaintext, key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'AES-256',
+            'Encrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'ciphertext': ciphertext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -496,11 +667,43 @@ def decrypt_aes():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
         key = base64.b64decode(key_b64)
-        plaintext = AES256Cipher.decrypt(ciphertext, key)
-        add_to_history('AES-256', 'Decryption', content_length=len(plaintext), status='success')
 
-        return jsonify({'success': True, 'plaintext': plaintext})
+        _t0 = time.perf_counter()
+        plaintext = AES256Cipher.decrypt(ciphertext, key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'AES-256',
+            'Decrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'plaintext': plaintext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': 'Decryption failed. Check your key and ciphertext.'}), 400
 
@@ -519,11 +722,43 @@ def encrypt_des():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
         key = base64.b64decode(key_b64)
-        ciphertext = DESCipher.encrypt(plaintext, key)
-        add_to_history('DES', 'Encryption', content_length=len(plaintext), status='success')
 
-        return jsonify({'success': True, 'ciphertext': ciphertext})
+        _t0 = time.perf_counter()
+        ciphertext = DESCipher.encrypt(plaintext, key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'DES',
+            'Encrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'ciphertext': ciphertext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -542,11 +777,43 @@ def decrypt_des():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
         key = base64.b64decode(key_b64)
-        plaintext = DESCipher.decrypt(ciphertext, key)
-        add_to_history('DES', 'Decryption', content_length=len(plaintext), status='success')
 
-        return jsonify({'success': True, 'plaintext': plaintext})
+        _t0 = time.perf_counter()
+        plaintext = DESCipher.decrypt(ciphertext, key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'DES',
+            'Decrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'plaintext': plaintext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': 'Decryption failed. Check your key and ciphertext.'}), 400
 
@@ -565,10 +832,42 @@ def encrypt_rsa():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
-        ciphertext = RSACipher.encrypt(plaintext, public_key)
-        add_to_history('RSA', 'Encryption', content_length=len(plaintext), status='success')
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        return jsonify({'success': True, 'ciphertext': ciphertext})
+        _t0 = time.perf_counter()
+        ciphertext = RSACipher.encrypt(plaintext, public_key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'RSA',
+            'Encrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'ciphertext': ciphertext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': 'Invalid public key or encryption failed'}), 400
 
@@ -587,10 +886,42 @@ def decrypt_rsa():
         if not valid:
             return jsonify({'success': False, 'error': msg}), 400
 
-        plaintext = RSACipher.decrypt(ciphertext, private_key)
-        add_to_history('RSA', 'Decryption', content_length=len(plaintext), status='success')
+        client_ip = _get_client_ip()
+        request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        return jsonify({'success': True, 'plaintext': plaintext})
+        _t0 = time.perf_counter()
+        plaintext = RSACipher.decrypt(ciphertext, private_key)
+        _t1 = time.perf_counter()
+        exec_time = max(0.0, _t1 - _t0)
+
+        logging_result = add_to_history(
+            'RSA',
+            'Decrypt',
+            content_length=len(plaintext),
+            status='success',
+            client_ip=client_ip,
+            execution_time=exec_time,
+            local_time_iso=request_local_time,
+        )
+
+        response_body = {
+            'success': True,
+            'plaintext': plaintext,
+            'execution_time_ms': round(exec_time * 1000, 3),
+            'logging': {
+                'sqlite': bool(logging_result.get('sqlite', False)),
+                'firestore': logging_result.get('firestore'),
+                'firestore_doc_id': logging_result.get('doc_id') or None,
+                'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+                'history_id': logging_result.get('id'),
+                'client_ip': logging_result.get('client_ip') or client_ip,
+                'local_time': logging_result.get('local_time') or request_local_time,
+                'execution_time': round(exec_time, 6),
+                'source': LOG_SOURCE,
+                'project_id': FIRESTORE_PROJECT_ID,
+            },
+        }
+        return jsonify(response_body)
     except Exception as e:
         return jsonify({'success': False, 'error': 'Invalid private key or decryption failed'}), 400
 
@@ -624,9 +955,42 @@ def hash_sha256():
     valid, msg = validate_not_empty(text, "Text")
     if not valid:
         return jsonify({'success': False, 'error': msg}), 400
+
+    client_ip = _get_client_ip()
+    request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    _t0 = time.perf_counter()
     hash_val = HashGenerator.sha256(text)
-    add_to_history('SHA-256', 'Hash', content_length=len(text), status='success')
-    return jsonify({'success': True, 'hash': hash_val})
+    _t1 = time.perf_counter()
+    exec_time = max(0.0, _t1 - _t0)
+
+    logging_result = add_to_history(
+        'SHA-256',
+        'Hash',
+        content_length=len(text),
+        status='success',
+        client_ip=client_ip,
+        execution_time=exec_time,
+        local_time_iso=request_local_time,
+    )
+
+    return jsonify({
+        'success': True,
+        'hash': hash_val,
+        'execution_time_ms': round(exec_time * 1000, 3),
+        'logging': {
+            'sqlite': bool(logging_result.get('sqlite', False)),
+            'firestore': logging_result.get('firestore'),
+            'firestore_doc_id': logging_result.get('doc_id') or None,
+            'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+            'history_id': logging_result.get('id'),
+            'client_ip': logging_result.get('client_ip') or client_ip,
+            'local_time': logging_result.get('local_time') or request_local_time,
+            'execution_time': round(exec_time, 6),
+            'source': LOG_SOURCE,
+            'project_id': FIRESTORE_PROJECT_ID,
+        },
+    })
 
 
 @app.route('/api/hash/sha512', methods=['POST'])
@@ -636,9 +1000,42 @@ def hash_sha512():
     valid, msg = validate_not_empty(text, "Text")
     if not valid:
         return jsonify({'success': False, 'error': msg}), 400
+
+    client_ip = _get_client_ip()
+    request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    _t0 = time.perf_counter()
     hash_val = HashGenerator.sha512(text)
-    add_to_history('SHA-512', 'Hash', content_length=len(text), status='success')
-    return jsonify({'success': True, 'hash': hash_val})
+    _t1 = time.perf_counter()
+    exec_time = max(0.0, _t1 - _t0)
+
+    logging_result = add_to_history(
+        'SHA-512',
+        'Hash',
+        content_length=len(text),
+        status='success',
+        client_ip=client_ip,
+        execution_time=exec_time,
+        local_time_iso=request_local_time,
+    )
+
+    return jsonify({
+        'success': True,
+        'hash': hash_val,
+        'execution_time_ms': round(exec_time * 1000, 3),
+        'logging': {
+            'sqlite': bool(logging_result.get('sqlite', False)),
+            'firestore': logging_result.get('firestore'),
+            'firestore_doc_id': logging_result.get('doc_id') or None,
+            'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+            'history_id': logging_result.get('id'),
+            'client_ip': logging_result.get('client_ip') or client_ip,
+            'local_time': logging_result.get('local_time') or request_local_time,
+            'execution_time': round(exec_time, 6),
+            'source': LOG_SOURCE,
+            'project_id': FIRESTORE_PROJECT_ID,
+        },
+    })
 
 
 @app.route('/api/hash/md5', methods=['POST'])
@@ -648,9 +1045,42 @@ def hash_md5():
     valid, msg = validate_not_empty(text, "Text")
     if not valid:
         return jsonify({'success': False, 'error': msg}), 400
+
+    client_ip = _get_client_ip()
+    request_local_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    _t0 = time.perf_counter()
     hash_val = HashGenerator.md5(text)
-    add_to_history('MD5', 'Hash', content_length=len(text), status='success')
-    return jsonify({'success': True, 'hash': hash_val})
+    _t1 = time.perf_counter()
+    exec_time = max(0.0, _t1 - _t0)
+
+    logging_result = add_to_history(
+        'MD5',
+        'Hash',
+        content_length=len(text),
+        status='success',
+        client_ip=client_ip,
+        execution_time=exec_time,
+        local_time_iso=request_local_time,
+    )
+
+    return jsonify({
+        'success': True,
+        'hash': hash_val,
+        'execution_time_ms': round(exec_time * 1000, 3),
+        'logging': {
+            'sqlite': bool(logging_result.get('sqlite', False)),
+            'firestore': logging_result.get('firestore'),
+            'firestore_doc_id': logging_result.get('doc_id') or None,
+            'synced_firebase': bool(logging_result.get('synced_firebase', 0)),
+            'history_id': logging_result.get('id'),
+            'client_ip': logging_result.get('client_ip') or client_ip,
+            'local_time': logging_result.get('local_time') or request_local_time,
+            'execution_time': round(exec_time, 6),
+            'source': LOG_SOURCE,
+            'project_id': FIRESTORE_PROJECT_ID,
+        },
+    })
 
 
 @app.route('/api/password/generate', methods=['GET'])

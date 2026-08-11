@@ -1,65 +1,127 @@
-/* Custom styles for Multi Algorithm Text Encryption System */
-
 /* ============================================================
-   CYBERSECURITY PROFESSIONAL THEME — BACKGROUND LAYER
-   Style: SOC-analyst / Threat-Intel dashboard feel
-   - Deep navy → slate → near-black multi-stop gradient
-   - Soft radial neon bloom in top-left (green) + bottom-right (cyan/purple)
-   - Subtle animated cyber grid (1px lines + 64px blocks)
-   - Faint full-page scanline shimmer
-   - Fixed-position, so it stays put when scrolling
+   PROFESSIONAL DASHBOARD THEME — SINGLE ACCENT
+   Accent:  Emerald #16a34a (terminal green)
+   Palette: Deep graphite / slate backgrounds, no neon/cyan/purple extras.
+   Depth:   3D layered shadows — ambient + midrange + contact
+   Feel:    Security ops terminal / SIEM dashboard — clean, serious,
+            readable, professional.
    ============================================================ */
 
 :root {
-    --cyber-bg-0:      #05070f;
-    --cyber-bg-1:      #0a0f1f;
-    --cyber-bg-2:      #0d1428;
-    --cyber-bg-3:      #111a33;
-    --cyber-green:     #10b981;
-    --cyber-green-2:   #34d399;
-    --cyber-cyan:      #22d3ee;
-    --cyber-blue:      #3b82f6;
-    --cyber-purple:    #8b5cf6;
-    --cyber-pink:      #ec4899;
-    --cyber-danger:    #ef4444;
-    --cyber-warning:   #f59e0b;
-    --cyber-text-0:    #f8fafc;
-    --cyber-text-1:    #cbd5e1;
-    --cyber-border:    rgba(16, 185, 129, 0.22);
+    /* --- background scale (darkest → lightest graphite) --- */
+    --bg-00: #07090d;
+    --bg-0:  #0b0f16;
+    --bg-1:  #0f141d;
+    --bg-2:  #141a26;
+    --bg-3:  #1a2231;
+    --bg-4:  #222c3f;
+
+    /* --- single green accent scale (9 shades, accessible AA+ everywhere) --- */
+    --accent-950: #052e16;
+    --accent-900: #14532d;
+    --accent-800: #166534;
+    --accent-700: #15803d;
+    --accent-600: #16a34a;  /* PRIMARY */
+    --accent-500: #22c55e;
+    --accent-400: #4ade80;
+    --accent-300: #86efac;
+    --accent-100: #dcfce7;
+
+    /* --- semantic --- */
+    --danger:  #dc2626;
+    --danger-2:#fee2e2;
+    --warning: #d97706;
+    --info:    #2563eb;
+    --info-2:  #dbeafe;
+
+    /* --- text scale --- */
+    --text-0:  #f8fafc;   /* brightest, headings */
+    --text-1:  #e2e8f0;   /* body */
+    --text-2:  #cbd5e1;   /* secondary */
+    --text-3:  #94a3b8;   /* muted */
+
+    /* --- borders --- */
+    --br-1:  rgba(226, 232, 240, 0.06);   /* subtle separator */
+    --br-2:  rgba(226, 232, 240, 0.10);   /* card border */
+    --br-3:  rgba(22,  163,  74, 0.32);   /* accent border */
+    --br-4:  rgba(22,  163,  74, 0.55);   /* accent border (strong) */
+
+    /* --- radii (consistent) --- */
+    --r-sm:  6px;
+    --r-md:  10px;
+    --r-lg:  14px;
+    --r-xl:  18px;
+
+    /* --- fonts --- */
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+                 Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* --- shadows (3D layered — no neon glow, real geometric depth) --- */
+    /* Ambient (soft far shadow) + midrange (form shadow) + contact (tight near shadow under element) */
+    --sh-1:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,  /* top lip light */
+        0 0 0 1px rgba(0, 0, 0, 0.35),           /* hairline */
+        0 2px 6px rgba(0, 0, 0, 0.25),           /* contact */
+        0 8px 28px rgba(0, 0, 0, 0.35);          /* ambient */
+
+    --sh-2:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.40),
+        0 4px 10px rgba(0, 0, 0, 0.30),
+        0 16px 50px rgba(0, 0, 0, 0.45);
+
+    --sh-3:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.45),
+        0 8px 16px rgba(0, 0, 0, 0.35),
+        0 26px 80px rgba(0, 0, 0, 0.55);
+
+    /* focus outline — single color, no glow */
+    --focus: 0 0 0 3px rgba(22, 163, 74, 0.22);
 }
 
-html, body {
-    min-height: 100vh;
-}
+/* ============================================================
+   GLOBAL RESET / TYPOGRAPHY
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+html, body { min-height: 100vh; }
 
 body {
-    background-color: var(--cyber-bg-0);
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-1);
+    background-color: var(--bg-00);
     background-image:
-        /* 4) Top diagonal shine */
-        radial-gradient(1200px 600px at 15% -10%, rgba(16, 185, 129, 0.18), transparent 60%),
-        /* 3) Bottom-right purple/cyan bloom */
-        radial-gradient(900px 700px at 95% 110%, rgba(59, 130, 246, 0.20) 0%, rgba(139, 92, 246, 0.14) 40%, transparent 70%),
-        /* 2) Subtle animated grid */
-        linear-gradient(rgba(46, 125, 95, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(46, 125, 95, 0.08) 1px, transparent 1px),
-        /* 1) Deep multi-stop base gradient */
-        linear-gradient(160deg,
-            var(--cyber-bg-0) 0%,
-            var(--cyber-bg-1) 30%,
-            var(--cyber-bg-2) 60%,
-            var(--cyber-bg-3) 100%);
+        /* 2) subtle terminal dot grid (very faint) */
+        radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        radial-gradient(rgba(255,255,255,0.020) 1px, transparent 1px),
+        /* 1) deep two-stop graphite gradient (no purple/cyan — serious) */
+        linear-gradient(180deg,
+            var(--bg-00) 0%,
+            var(--bg-0) 40%,
+            var(--bg-1) 100%);
     background-size:
-        auto, auto,
-        64px 64px, 64px 64px,
+        24px 24px,
+        24px 24px,
         auto;
+    background-position:
+        0 0,
+        12px 12px,
+        0 0;
     background-attachment: fixed;
-    background-position: center center;
-    color: var(--cyber-text-0);
-    position: relative;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
 }
 
-/* Animated scanline sweep across the viewport */
+/* Subtle "CRT scanline" tastefully reduced — no travelling bar, no sweep */
 body::before {
     content: "";
     position: fixed;
@@ -68,208 +130,144 @@ body::before {
     z-index: 1;
     background: repeating-linear-gradient(
         0deg,
-        rgba(255, 255, 255, 0.018) 0px,
-        rgba(255, 255, 255, 0.018) 1px,
+        rgba(255, 255, 255, 0.010) 0px,
+        rgba(255, 255, 255, 0.010) 1px,
         transparent 1px,
         transparent 3px
     );
     mix-blend-mode: overlay;
-    opacity: 0.55;
+    opacity: 0.35;
 }
 
-/* Slow traveling highlight bar (subtle, almost imperceptible — adds life) */
-body::after {
-    content: "";
-    position: fixed;
-    top: -5%;
-    left: -10%;
-    right: -10%;
-    height: 22%;
-    pointer-events: none;
-    z-index: 2;
-    background: linear-gradient(180deg,
-        transparent 0%,
-        rgba(16, 185, 129, 0.04) 50%,
-        transparent 100%);
-    filter: blur(30px);
-    transform: translateY(-10%);
-    animation: cyber-scan-sweep 9s ease-in-out infinite;
+/* All page content sits above the fixed backdrop */
+body > * { position: relative; z-index: 2; }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-0);
+    margin-top: 0;
 }
 
-@keyframes cyber-scan-sweep {
-    0%   { transform: translateY(-20%); opacity: 0.2; }
-    50%  { transform: translateY(60vh); opacity: 0.55; }
-    100% { transform: translateY(120vh); opacity: 0.2; }
+h1 { font-size: 1.9rem; line-height: 1.2; }
+h2 { font-size: 1.5rem; line-height: 1.25; }
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1.05rem; }
+
+p  { color: var(--text-1); }
+small, .text-muted, .small { color: var(--text-2) !important; }
+
+/* Monospace helper — used for keys, hashes, outputs, terminal footer */
+.font-mono,
+code, pre, kbd, samp,
+textarea[readonly],
+textarea.output,
+.ciphertext-output,
+.hash-output,
+.key-display {
+    font-family: var(--font-mono);
+    letter-spacing: 0.005em;
 }
 
-/* Cyber corner decorations — looks like a targeting HUD overlay */
-.cyber-corner {
-    position: fixed;
-    width: 38px;
-    height: 38px;
-    border: 2px solid rgba(16, 185, 129, 0.55);
-    pointer-events: none;
-    z-index: 3;
-    opacity: 0.75;
-}
-.cyber-corner.tl { top: 18px;    left: 18px;    border-right: 0; border-bottom: 0; }
-.cyber-corner.tr { top: 18px;    right: 18px;   border-left: 0;  border-bottom: 0; }
-.cyber-corner.bl { bottom: 18px; left: 18px;    border-right: 0; border-top: 0; }
-.cyber-corner.br { bottom: 18px; right: 18px;   border-left: 0;  border-top: 0; }
-
-/* Ensure page content sits above the background layers */
-body > * { position: relative; z-index: 4; }
+/* Links */
+a { color: var(--accent-400); text-decoration: none; transition: color .2s ease; }
+a:hover { color: var(--accent-300); text-decoration: underline; }
+a:focus-visible { outline: none; border-radius: 4px; box-shadow: var(--focus); }
 
 /* ============================================================
-   GLASS CARD CYBER UPGRADE
+   HUD CORNERS (terminal frame) — single green, no neon
    ============================================================ */
-.glass-card {
+.cyber-corner {
+    position: fixed;
+    width: 34px;
+    height: 34px;
+    border: 2px solid rgba(22, 163, 74, 0.45);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.9;
+    border-radius: 2px;
+}
+.cyber-corner.tl { top: 16px;    left: 16px;    border-right: 0; border-bottom: 0; }
+.cyber-corner.tr { top: 16px;    right: 16px;   border-left: 0;  border-bottom: 0; }
+.cyber-corner.bl { bottom: 16px; left: 16px;    border-right: 0; border-top: 0; }
+.cyber-corner.br { bottom: 16px; right: 16px;   border-left: 0;  border-top: 0; }
+
+/* ============================================================
+   GLASS / DARK CARD — 3D layered, single accent
+   ============================================================ */
+.glass-card,
+.card.bg-dark {
     background:
-        linear-gradient(135deg, rgba(17, 26, 51, 0.82), rgba(10, 15, 31, 0.88));
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid var(--cyber-border);
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.04) inset,
-        0 0 0 1px rgba(0, 0, 0, 0.35),
-        0 12px 40px rgba(0, 0, 0, 0.45),
-        0 0 40px rgba(16, 185, 129, 0.05);
-    transition: all 0.3s ease, box-shadow 0.5s ease;
+        linear-gradient(180deg,
+            rgba(26, 34, 49, 0.92) 0%,
+            rgba(15, 20, 29, 0.96) 100%);
+    border: 1px solid var(--br-2);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-2);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1),
+                box-shadow .35s ease,
+                border-color .25s ease;
     position: relative;
     overflow: hidden;
 }
 
-/* Thin top-edge green accent strip */
-.glass-card::before {
+/* Single 1px top-lip accent (green, no multi-color sweep) */
+.glass-card::before,
+.card.bg-dark::before {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 1px;
+    height: 2px;
     background: linear-gradient(90deg,
-        transparent,
-        rgba(16, 185, 129, 0.9),
-        rgba(59, 130, 246, 0.7),
-        rgba(139, 92, 246, 0.6),
-        transparent);
-    opacity: 0.85;
+        transparent 0%,
+        rgba(22, 163, 74, 0.85) 20%,
+        rgba(34, 197, 94, 0.85) 50%,
+        rgba(22, 163, 74, 0.85) 80%,
+        transparent 100%);
+    opacity: 0.95;
 }
 
-.glass-card:hover {
+.glass-card:hover,
+.card.bg-dark:hover {
     transform: translateY(-3px);
-    border-color: rgba(16, 185, 129, 0.55);
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.05) inset,
-        0 0 0 1px rgba(0, 0, 0, 0.35),
-        0 20px 60px rgba(0, 0, 0, 0.55),
-        0 0 60px rgba(16, 185, 129, 0.11);
+    border-color: var(--br-3);
+    box-shadow: var(--sh-3);
 }
 
-/* Card headers — military-green HUD tabs */
+/* Card headers — single green gradient, no cyan/purple */
 .card.bg-dark .card-header,
 .glass-card .card-header {
     background:
-        linear-gradient(90deg, rgba(16, 185, 129, 0.10), rgba(16, 185, 129, 0.02) 40%, transparent);
-    border-bottom: 1px solid var(--cyber-border) !important;
-    letter-spacing: 0.01em;
+        linear-gradient(90deg,
+            rgba(22, 163, 74, 0.12) 0%,
+            rgba(22, 163, 74, 0.04) 40%,
+            transparent 100%);
+    border-bottom: 1px solid var(--br-2) !important;
+    color: var(--text-0) !important;
+    letter-spacing: 0.005em;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-top-left-radius: var(--r-lg) !important;
+    border-top-right-radius: var(--r-lg) !important;
 }
 
 /* ============================================================
-   RAINBOW LOOKUP — PWNED / CLEAN result headers + glow
-   ============================================================ */
-.cyber-header-pwned {
-    background:
-        linear-gradient(90deg,
-            rgba(239, 68, 68, 0.22) 0%,
-            rgba(236, 72, 153, 0.12) 50%,
-            rgba(239, 68, 68, 0.04) 100%) !important;
-    border-bottom: 1px solid rgba(239, 68, 68, 0.55) !important;
-    color: #fecaca !important;
-    position: relative;
-    overflow: hidden;
-}
-.cyber-header-pwned::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        45deg,
-        rgba(239, 68, 68, 0.08) 0,
-        rgba(239, 68, 68, 0.08) 8px,
-        transparent 8px,
-        transparent 16px);
-    pointer-events: none;
-    mix-blend-mode: overlay;
-}
-
-.cyber-header-secure {
-    background:
-        linear-gradient(90deg,
-            rgba(16, 185, 129, 0.22) 0%,
-            rgba(34, 211, 238, 0.12) 55%,
-            rgba(16, 185, 129, 0.04) 100%) !important;
-    border-bottom: 1px solid rgba(16, 185, 129, 0.55) !important;
-    color: #bbf7d0 !important;
-    position: relative;
-}
-
-/* Outer card glow */
-.cyber-pwned-glow {
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.04) inset,
-        0 0 0 1px rgba(239, 68, 68, 0.35),
-        0 16px 50px rgba(0, 0, 0, 0.5),
-        0 0 80px rgba(239, 68, 68, 0.22),
-        0 0 140px rgba(236, 72, 153, 0.10) !important;
-    border-color: rgba(239, 68, 68, 0.45) !important;
-}
-
-.cyber-secure-glow {
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.04) inset,
-        0 0 0 1px rgba(16, 185, 129, 0.35),
-        0 16px 50px rgba(0, 0, 0, 0.5),
-        0 0 80px rgba(16, 185, 129, 0.20),
-        0 0 140px rgba(34, 211, 238, 0.10) !important;
-    border-color: rgba(16, 185, 129, 0.45) !important;
-}
-
-/* Danger pulsing neon — animates only when a hash is CRACKED */
-.animate-pulse-neon {
-    animation: pulse-neon-danger 1.6s ease-in-out infinite;
-}
-@keyframes pulse-neon-danger {
-    0%, 100% {
-        box-shadow:
-            0 0 0 rgba(239, 68, 68, 0.0),
-            inset 0 0 24px rgba(239, 68, 68, 0.10);
-    }
-    50% {
-        box-shadow:
-            0 0 32px rgba(239, 68, 68, 0.55),
-            0 0 60px rgba(236, 72, 153, 0.25),
-            inset 0 0 24px rgba(239, 68, 68, 0.22);
-    }
-}
-
-/* ============================================================
-   CYBER NAVBAR — SOC / Threat-Intel command-center top bar
+   NAVBAR — professional, single accent
    ============================================================ */
 .cyber-navbar {
     background:
-        linear-gradient(180deg, rgba(10, 15, 31, 0.96), rgba(5, 7, 15, 0.98));
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    border-bottom: 1px solid transparent !important;
-    border-image: linear-gradient(90deg,
-        transparent,
-        rgba(16, 185, 129, 0.8),
-        rgba(59, 130, 246, 0.6),
-        rgba(139, 92, 246, 0.5),
-        transparent) 1 !important;
+        linear-gradient(180deg,
+            rgba(11, 15, 22, 0.98) 0%,
+            rgba(7,  9, 13, 0.99) 100%);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid var(--br-2) !important;
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.03) inset,
-        0 8px 30px rgba(0, 0, 0, 0.55),
-        0 0 40px rgba(16, 185, 129, 0.05);
+        0 1px 0 rgba(255, 255, 255, 0.025) inset,
+        0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
 .cyber-brand {
@@ -280,140 +278,118 @@ body > * { position: relative; z-index: 4; }
 }
 
 .cyber-brand .fa-shield-halved {
-    color: var(--cyber-green);
-    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.55));
+    color: var(--accent-500);
+    filter: none;
 }
 
 .brand-name {
-    background: linear-gradient(90deg,
-        var(--cyber-green-2) 0%,
-        var(--cyber-cyan) 50%,
-        var(--cyber-blue) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--text-0);
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    font-size: 1.05rem;
 }
+.brand-name::first-letter { color: var(--accent-400); }
 
 .brand-version {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    font-size: 0.62rem;
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    padding: 0.2rem 0.55rem !important;
-    background: rgba(5, 7, 15, 0.85) !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
-    color: var(--cyber-green-2) !important;
-    box-shadow:
-        inset 0 0 12px rgba(16, 185, 129, 0.08),
-        0 0 10px rgba(16, 185, 129, 0.12);
+    padding: 0.22rem 0.55rem !important;
+    background: var(--bg-00) !important;
+    border: 1px solid var(--br-3) !important;
+    color: var(--accent-300) !important;
+    border-radius: 999px;
+    box-shadow: inset 0 0 12px rgba(22, 163, 74, 0.06);
 }
 
-/* SOC live status pills (right side of navbar) */
+/* SOC status pills */
 .cyber-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     padding: 0.35rem 0.75rem;
     border-radius: 9999px;
     text-transform: uppercase;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--br-2);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
-
 .cyber-status-pill .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 9999px;
-    display: inline-block;
+    width: 7px; height: 7px; border-radius: 999px; display: inline-block;
 }
-
 .cyber-status-pill.secure {
     background:
-        linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(16, 185, 129, 0.05));
-    color: #bbf7d0;
-    border: 1px solid rgba(16, 185, 129, 0.45);
-    box-shadow:
-        inset 0 0 14px rgba(16, 185, 129, 0.10),
-        0 0 18px rgba(16, 185, 129, 0.15);
+        linear-gradient(135deg, rgba(22, 163, 74, 0.16), rgba(22, 163, 74, 0.04));
+    color: var(--accent-100);
+    border: 1px solid var(--br-3);
+    box-shadow: inset 0 0 12px rgba(22, 163, 74, 0.06);
 }
 .cyber-status-pill.secure .dot {
-    background: var(--cyber-green);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-    animation: cyber-dot-pulse 1.8s ease-out infinite;
+    background: var(--accent-500);
+    animation: dot-pulse 1.8s ease-out infinite;
 }
-
 .cyber-status-pill.info {
     background:
-        linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.08));
+        linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(37, 99, 235, 0.04));
     color: #bfdbfe;
-    border: 1px solid rgba(59, 130, 246, 0.40);
-    box-shadow:
-        inset 0 0 14px rgba(59, 130, 246, 0.08),
-        0 0 18px rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    box-shadow: inset 0 0 12px rgba(37, 99, 235, 0.05);
+}
+@keyframes dot-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6); }
+    70%  { box-shadow: 0 0 0 9px rgba(22, 163, 74, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
 }
 
-@keyframes cyber-dot-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.75); }
-    70%  { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0);    }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);    }
-}
-
-/* Cyber nav-link styling — tactical HUD feel */
+/* Nav links */
 .cyber-navbar .nav-link {
-    border-radius: 0.5rem;
-    padding: 0.45rem 0.9rem !important;
+    border-radius: var(--r-md);
+    padding: 0.5rem 0.95rem !important;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    transition: all 0.22s ease;
-    color: rgba(226, 232, 240, 0.9) !important;
+    letter-spacing: 0.01em;
+    transition: all .22s ease;
+    color: var(--text-1) !important;
     position: relative;
 }
-.cyber-navbar .nav-link i { color: var(--cyber-green); opacity: 0.85; transition: all 0.2s; }
+.cyber-navbar .nav-link i { color: var(--accent-500); opacity: 0.85; transition: opacity .2s; }
 .cyber-navbar .nav-link:hover {
     background: linear-gradient(90deg,
-        rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05));
-    color: #ffffff !important;
+        rgba(22, 163, 74, 0.16), rgba(22, 163, 74, 0.03));
+    color: var(--text-0) !important;
     box-shadow:
-        inset 0 0 0 1px rgba(16, 185, 129, 0.35),
-        0 0 24px rgba(16, 185, 129, 0.12);
+        inset 0 0 0 1px var(--br-3);
     transform: translateY(-1px);
 }
-.cyber-navbar .nav-link:hover i {
-    opacity: 1;
-    filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7));
-}
+.cyber-navbar .nav-link:hover i { opacity: 1; }
+.cyber-navbar .nav-link:focus-visible { outline: none; box-shadow: var(--focus); }
 .cyber-navbar .nav-link.active {
-    background:
-        linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95)) !important;
+    background: linear-gradient(135deg, var(--accent-600) 0%, var(--accent-700) 100%) !important;
     color: #ffffff !important;
     box-shadow:
-        0 0 0 1px rgba(16, 185, 129, 0.4),
-        0 6px 22px rgba(16, 185, 129, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        0 0 0 1px rgba(22, 163, 74, 0.55),
+        0 6px 18px rgba(22, 163, 74, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
-.cyber-navbar .nav-link.active i { color: #ffffff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+.cyber-navbar .nav-link.active i { color: #ffffff; }
 
-/* Cyber footer — terminal SOC status line */
+/* ============================================================
+   FOOTER — terminal SOC line
+   ============================================================ */
 .cyber-footer {
     background:
-        linear-gradient(0deg, rgba(5, 7, 15, 0.98), rgba(10, 15, 31, 0.92));
-    border-top: 1px solid transparent !important;
-    border-image: linear-gradient(90deg,
-        transparent,
-        rgba(16, 185, 129, 0.5),
-        rgba(59, 130, 246, 0.35),
-        rgba(139, 92, 246, 0.3),
-        transparent) 1 !important;
+        linear-gradient(0deg,
+            rgba(7, 9, 13, 0.98) 0%,
+            rgba(11, 15, 22, 0.95) 100%);
+    border-top: 1px solid var(--br-2) !important;
     position: relative;
     overflow: hidden;
+    margin-top: 3rem;
 }
 .cyber-footer::before {
     content: "";
@@ -421,25 +397,469 @@ body > * { position: relative; z-index: 4; }
     top: 0; left: 0; right: 0;
     height: 1px;
     background: linear-gradient(90deg,
-        transparent, rgba(16, 185, 129, 0.8), transparent);
-    opacity: 0.7;
-}
-.cyber-footer .font-monospace {
-    letter-spacing: 0.01em;
+        transparent, rgba(22, 163, 74, 0.85), transparent);
+    opacity: 0.85;
 }
 
-/* ------------------------------------------------------------ */
 /* ============================================================
-   DARK THEME CONTRAST BOOST (AGGRESSIVE) — prevents invisible
-   low-contrast text on glassmorphism cards. Never force the user
-   to select text in order to read it.
-   Rules below are intentionally specific + use !important so NO
-   Bootstrap default / browser override / CSS cascade can dim them.
+   FORM INPUTS — terminal inputs, single green focus
    ============================================================ */
+.form-label {
+    color: var(--text-0) !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.45rem;
+    display: inline-block;
+}
 
-/* --- 1) Card HEADERS and card BODY text in dark/glass cards --- */
-.card.bg-dark .card-header,
-.glass-card .card-header,
+.form-control,
+.form-select,
+textarea.form-control,
+input.form-control {
+    background:
+        linear-gradient(135deg,
+            rgba(11, 15, 22, 0.95) 0%,
+            rgba(7, 9, 13, 0.98) 100%) !important;
+    border: 1px solid var(--br-2) !important;
+    color: var(--text-0) !important;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    border-radius: var(--r-md) !important;
+    padding: 0.65rem 0.85rem;
+    transition: border-color .22s ease, box-shadow .22s ease, transform .15s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.02),
+        inset 0 0 14px rgba(0, 0, 0, 0.30),
+        0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.form-control:hover, .form-select:hover { border-color: var(--br-3) !important; }
+
+.form-control:focus, .form-select:focus {
+    background:
+        linear-gradient(135deg,
+            rgba(7, 9, 13, 0.98) 0%,
+            rgba(11, 15, 22, 0.96) 100%) !important;
+    border-color: var(--accent-600) !important;
+    box-shadow:
+        var(--focus),
+        0 0 0 1px rgba(22, 163, 74, 0.55),
+        inset 0 0 14px rgba(0, 0, 0, 0.30),
+        0 6px 18px rgba(22, 163, 74, 0.10);
+    outline: none !important;
+    transform: translateY(-0.5px);
+}
+
+textarea[readonly].form-control,
+input[readonly].form-control {
+    background:
+        linear-gradient(135deg,
+            rgba(20, 26, 38, 0.85) 0%,
+            rgba(15, 20, 29, 0.90) 100%) !important;
+    color: var(--accent-100);
+    border-color: rgba(22, 163, 74, 0.22) !important;
+    cursor: text;
+}
+
+::placeholder { color: rgba(148, 163, 184, 0.7) !important; opacity: 1 !important; }
+
+/* Input groups: buttons inside input-group */
+.input-group .btn { border-radius: var(--r-md) !important; }
+.input-group .form-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.input-group .btn:last-child { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+
+/* ============================================================
+   BUTTONS — 3D tactile, prominent CTAs
+   Primary:    .btn-success      (Encrypt/Decrypt)
+   Secondary:  .btn-outline-success (Copy/Generate Ghost)
+   Danger:     .btn-danger       (Clear/Delete — muted red, not pink)
+   ============================================================ */
+.btn {
+    border-radius: var(--r-md) !important;
+    font-family: var(--font-sans);
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    padding: 0.6rem 1.15rem !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: transform .18s cubic-bezier(.2,.8,.2,1),
+                box-shadow .25s ease,
+                background .25s ease,
+                border-color .22s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    border: 1px solid transparent !important;
+    position: relative;
+}
+
+.btn:focus-visible { outline: none !important; box-shadow: var(--focus) !important; }
+
+/* ---------- PRIMARY (Encrypt / Decrypt / Confirm) ----------
+   3D layered box-shadow: contact (tight bottom dark) + mid + ambient
+   Hover lifts by translateY — real depth, no neon. */
+.btn-success {
+    background:
+        linear-gradient(180deg,
+            #22c55e 0%,           /* top highlight */
+            #16a34a 50%,          /* primary */
+            #15803d 100%);        /* bottom dark */
+    border: 1px solid rgba(22, 163, 74, 0.9) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.22) inset,   /* top lip light */
+        0 -1px 0 rgba(0, 0, 0, 0.25) inset,        /* bottom lip shade */
+        0 0 0 1px rgba(0, 0, 0, 0.40),             /* hairline */
+        0 4px 10px rgba(0, 0, 0, 0.30),            /* contact */
+        0 12px 32px rgba(22, 163, 74, 0.22);       /* ambient */
+}
+.btn-success:hover {
+    background:
+        linear-gradient(180deg,
+            #4ade80 0%,
+            #22c55e 50%,
+            #16a34a 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.26) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.45),
+        0 8px 18px rgba(0, 0, 0, 0.35),
+        0 18px 52px rgba(22, 163, 74, 0.32);
+    border-color: rgba(74, 222, 128, 0.85) !important;
+}
+.btn-success:active {
+    transform: translateY(1px);  /* press IN 1px (tactile) */
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- GHOST / SECONDARY (Copy, Generate) ---------- */
+.btn-outline-success {
+    border: 1px solid var(--br-4) !important;
+    color: var(--accent-300) !important;
+    background:
+        linear-gradient(135deg,
+            rgba(22, 163, 74, 0.07),
+            rgba(22, 163, 74, 0.02));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.03) inset,
+        0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.btn-outline-success:hover {
+    background: linear-gradient(135deg,
+        rgba(22, 163, 74, 0.16),
+        rgba(22, 163, 74, 0.06));
+    color: var(--accent-100) !important;
+    border-color: var(--accent-500) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(22, 163, 74, 0.35),
+        0 6px 18px rgba(22, 163, 74, 0.18),
+        0 3px 8px rgba(0, 0, 0, 0.30);
+    transform: translateY(-1px);
+}
+.btn-outline-success:active { transform: translateY(1px); }
+
+/* ---------- DANGER (clear, delete, cancel) — no pink, pure red ---------- */
+.btn-danger {
+    background:
+        linear-gradient(180deg,
+            #ef4444 0%,
+            #dc2626 55%,
+            #b91c1c 100%);
+    border: 1px solid rgba(220, 38, 38, 0.9) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.18) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.40),
+        0 4px 10px rgba(0, 0, 0, 0.30),
+        0 10px 28px rgba(220, 38, 38, 0.18);
+}
+.btn-danger:hover {
+    background:
+        linear-gradient(180deg,
+            #f87171 0%,
+            #ef4444 50%,
+            #dc2626 100%);
+    transform: translateY(-2px);
+    border-color: rgba(248, 113, 113, 0.85) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.22) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.45),
+        0 8px 18px rgba(0, 0, 0, 0.35),
+        0 16px 48px rgba(220, 38, 38, 0.28);
+}
+.btn-danger:active {
+    transform: translateY(1px);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.45),
+        0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.btn-outline-danger {
+    border: 1px solid rgba(239, 68, 68, 0.55) !important;
+    color: #fecaca !important;
+    background: rgba(239, 68, 68, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(248, 113, 113, 0.9) !important;
+    color: #fff1f2 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.20);
+}
+
+.btn-outline-secondary {
+    border: 1px solid rgba(148, 163, 184, 0.35) !important;
+    color: #e2e8f0 !important;
+    background: rgba(148, 163, 184, 0.06);
+}
+.btn-outline-secondary:hover {
+    background: rgba(148, 163, 184, 0.14);
+    border-color: rgba(148, 163, 184, 0.65) !important;
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background:
+        linear-gradient(180deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%);
+    border: 1px solid rgba(37, 99, 235, 0.9) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.28), 0 10px 28px rgba(37,99,235,0.18);
+}
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-primary:active { transform: translateY(1px); }
+
+/* ============================================================
+   ALERTS — clean success / error / info / warning
+   ============================================================ */
+.alert {
+    border-radius: var(--r-md);
+    border: 1px solid transparent !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 4px 14px rgba(0, 0, 0, 0.30);
+    font-weight: 500;
+}
+.alert strong { letter-spacing: 0.01em; }
+
+.alert-success {
+    background:
+        linear-gradient(135deg,
+            rgba(22, 163, 74, 0.20) 0%,
+            rgba(22, 163, 74, 0.08) 100%);
+    border-color: var(--br-4) !important;
+    color: var(--accent-100) !important;
+}
+.alert-success .alert-link { color: #bbf7d0; }
+
+.alert-danger {
+    background:
+        linear-gradient(135deg,
+            rgba(220, 38, 38, 0.22) 0%,
+            rgba(220, 38, 38, 0.08) 100%);
+    border-color: rgba(220, 38, 38, 0.55) !important;
+    color: #fecaca !important;
+}
+
+.alert-warning {
+    background:
+        linear-gradient(135deg,
+            rgba(217, 119, 6, 0.20) 0%,
+            rgba(217, 119, 6, 0.08) 100%);
+    border-color: rgba(217, 119, 6, 0.55) !important;
+    color: #fef3c7 !important;
+}
+
+.alert-info {
+    background:
+        linear-gradient(135deg,
+            rgba(37, 99, 235, 0.20) 0%,
+            rgba(37, 99, 235, 0.08) 100%);
+    border-color: rgba(37, 99, 235, 0.55) !important;
+    color: #dbeafe !important;
+}
+
+/* ---------- Rainbow: Pwned / Secure (no neon! — keep serious) ---------- */
+.cyber-header-pwned {
+    background:
+        linear-gradient(90deg,
+            rgba(220, 38, 38, 0.22) 0%,
+            rgba(220, 38, 38, 0.06) 100%) !important;
+    border-bottom: 1px solid rgba(220, 38, 38, 0.55) !important;
+    color: #fecaca !important;
+    position: relative;
+}
+.cyber-header-pwned::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(220, 38, 38, 0.07) 0,
+        rgba(220, 38, 38, 0.07) 8px,
+        transparent 8px,
+        transparent 16px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+}
+.cyber-header-secure {
+    background:
+        linear-gradient(90deg,
+            rgba(22, 163, 74, 0.22) 0%,
+            rgba(22, 163, 74, 0.06) 100%) !important;
+    border-bottom: 1px solid var(--br-4) !important;
+    color: var(--accent-100) !important;
+}
+.cyber-pwned-glow {
+    border-color: rgba(220, 38, 38, 0.45) !important;
+    box-shadow: var(--sh-2), 0 10px 40px rgba(220, 38, 38, 0.15);
+}
+.cyber-secure-glow {
+    border-color: var(--br-4) !important;
+    box-shadow: var(--sh-2), 0 10px 40px rgba(22, 163, 74, 0.16);
+}
+.animate-pulse-neon { animation: pwned-pulse 1.6s ease-in-out infinite; }
+@keyframes pwned-pulse {
+    0%, 100% { box-shadow: var(--sh-2); }
+    50%      { box-shadow: var(--sh-3), 0 0 0 1px rgba(220, 38, 38, 0.35); }
+}
+
+/* ============================================================
+   TOASTS — success / error system messages
+   ============================================================ */
+.toast-container { z-index: 1080 !important; }
+.toast {
+    background:
+        linear-gradient(135deg,
+            rgba(15, 20, 29, 0.98) 0%,
+            rgba(7, 9, 13, 0.99) 100%) !important;
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    border: 1px solid var(--br-2) !important;
+    border-radius: var(--r-md) !important;
+    box-shadow: var(--sh-2) !important;
+    min-width: 320px !important;
+    max-width: 100% !important;
+    position: relative;
+    overflow: hidden;
+    animation: toastIn .35s cubic-bezier(.2,.8,.2,1);
+}
+.toast::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent, var(--accent-600), transparent);
+}
+.toast.success::before { background: linear-gradient(90deg, transparent, var(--accent-500), transparent); }
+.toast.error::before   { background: linear-gradient(90deg, transparent, #dc2626, transparent); }
+.toast.warning::before { background: linear-gradient(90deg, transparent, #d97706, transparent); }
+
+.toast-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--br-1) !important;
+    color: var(--text-0) !important;
+}
+.toast-body { color: var(--text-1) !important; }
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(28px) translateY(-4px); }
+    to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+/* ============================================================
+   PROGRESS / BADGES / UTILS
+   ============================================================ */
+.progress {
+    background: rgba(7, 9, 13, 0.85);
+    border: 1px solid var(--br-2);
+    border-radius: 9999px;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    height: 0.75rem;
+}
+.progress-bar {
+    background: linear-gradient(90deg, var(--accent-700), var(--accent-500), var(--accent-400));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.badge.rounded-pill {
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.bg-black-50 { background-color: rgba(7, 9, 13, 0.55) !important; }
+.bg-black-75 { background-color: rgba(7, 9, 13, 0.82) !important; }
+
+/* Stat card labels */
+.stat-card-label {
+    color: var(--text-2) !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+}
+
+/* Table readability boost */
+.table.table-dark td,
+.table.table-dark th {
+    color: var(--text-1) !important;
+    background-color: transparent !important;
+    border-color: var(--br-1) !important;
+    vertical-align: middle;
+}
+.table.table-dark thead th {
+    color: var(--text-0) !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid var(--br-3) !important;
+    background: rgba(22, 163, 74, 0.06);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+}
+.table.table-dark tbody tr:hover {
+    background: rgba(22, 163, 74, 0.05);
+}
+
+/* Tab pills */
+.nav-pills .nav-link {
+    color: var(--text-1);
+    border-radius: var(--r-md);
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    transition: all .22s ease;
+}
+.nav-pills .nav-link:hover {
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--text-0);
+}
+.nav-pills .nav-link.active {
+    background:
+        linear-gradient(180deg, var(--accent-600) 0%, var(--accent-700) 100%) !important;
+    color: #fff !important;
+    border: 1px solid rgba(22, 163, 74, 0.8) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 6px 18px rgba(22, 163, 74, 0.28);
+}
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES (contrast fixes)
+   ============================================================ */
 .card.bg-dark .card-header h1,
 .card.bg-dark .card-header h2,
 .card.bg-dark .card-header h3,
@@ -452,17 +872,9 @@ body > * { position: relative; z-index: 4; }
 .glass-card .card-header h4,
 .glass-card .card-header h5,
 .glass-card .card-header h6 {
-    color: #ffffff !important;
+    color: var(--text-0) !important;
 }
 
-.card.bg-dark .card-header .fas,
-.glass-card .card-header .fas,
-.card.bg-dark .card-header .fa-solid,
-.glass-card .card-header .fa-solid {
-    opacity: 1 !important;
-}
-
-/* --- 2) All headings (h1..h6) INSIDE a dark/glass card BODY --- */
 .card.bg-dark .card-body h1,
 .card.bg-dark .card-body h2,
 .card.bg-dark .card-body h3,
@@ -475,249 +887,49 @@ body > * { position: relative; z-index: 4; }
 .glass-card .card-body h4,
 .glass-card .card-body h5,
 .glass-card .card-body h6 {
-    color: #f8fafc !important;
+    color: var(--text-0) !important;
 }
 
-/* --- 3) Paragraphs and regular body text inside cards --- */
 .card.bg-dark .card-body p,
-.glass-card .card-body p,
-.card.bg-dark .card-body span:not(.badge):not(.btn):not(.progress-bar):not(.fa):not(.fas):not(.fa-solid),
-.glass-card .card-body span:not(.badge):not(.btn):not(.progress-bar):not(.fa):not(.fas):not(.fa-solid) {
-    color: #e2e8f0 !important;
+.glass-card .card-body p {
+    color: var(--text-1) !important;
 }
 
-/* --- 4) Catch-all for any text-muted inside dark cards --- */
-.bg-dark .text-muted,
-.glass-card .text-muted,
-.card.bg-dark .text-muted,
-body.bg-dark .text-muted {
-    color: rgba(248, 250, 252, 0.85) !important;
-}
-
-/* --- 5) Bootstrap form-labels default to body-color (too low on glass) --- */
-.form-label {
-    color: #f1f5f9 !important;
-    font-weight: 600 !important;
-}
-
-/* --- 6) Table text inside dark cards --- */
-.table.table-dark td,
-.table.table-dark th,
-.table.table-dark thead th {
-    color: #e2e8f0 !important;
-    background-color: transparent !important;
-}
-.table.table-dark thead th {
-    color: #f8fafc !important;
-    font-weight: 700 !important;
-}
-
-/* --- 7) Secondary/small helper text inside glass cards --- */
-.glass-card .small,
-.card.bg-dark .small {
-    color: rgba(241, 245, 249, 0.9) !important;
-}
-
-/* --- 8) Boost very low opacity on readable content (non-decorative) --- */
-.text-light.opacity-50:not(.badge):not(.btn):not(.progress-bar):not(.border),
-.text-light.opacity-75:not(.badge):not(.btn):not(.progress-bar):not(.border) {
-    opacity: 0.92 !important;
-}
-
-/* --- 9) Dashboard stat sub-labels (the little h6 labels above big numbers) --- */
-.stat-card-label {
-    color: #cbd5e1 !important;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    font-weight: 700;
-}
-
-/* --- 10) Ensure placeholder text is readable but still looks like placeholder --- */
-.form-control::placeholder,
-.form-select::placeholder,
-textarea::placeholder,
-input::placeholder {
-    color: rgba(203, 213, 225, 0.75) !important;
+hr {
+    border-color: var(--br-1) !important;
     opacity: 1 !important;
 }
 
 /* ============================================================
-   CYBER FORM FIELDS — terminal-input / data-entry vibe
-   Background sits in glass, focus ring glows green→cyan
+   RESPONSIVE POLISH — mobile / tablet
    ============================================================ */
-.form-control, .form-select {
-    background:
-        linear-gradient(135deg, rgba(10, 15, 31, 0.82), rgba(5, 7, 15, 0.92)) !important;
-    border: 1px solid rgba(16, 185, 129, 0.30) !important;
-    color: #f8fafc !important;
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    transition: all 0.25s ease !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        inset 0 0 18px rgba(0, 0, 0, 0.35);
-}
-.form-control:hover, .form-select:hover {
-    border-color: rgba(16, 185, 129, 0.50) !important;
-}
-.form-control:focus, .form-select:focus {
-    background:
-        linear-gradient(135deg, rgba(5, 7, 15, 0.94), rgba(10, 15, 31, 0.88)) !important;
-    border-color: rgba(16, 185, 129, 0.95) !important;
-    box-shadow:
-        0 0 0 3px rgba(16, 185, 129, 0.18),
-        0 0 24px rgba(16, 185, 129, 0.22),
-        0 0 48px rgba(34, 211, 238, 0.08),
-        inset 0 0 18px rgba(0, 0, 0, 0.35) !important;
-    outline: none !important;
+@media (max-width: 992px) {
+    .cyber-corner { width: 24px; height: 24px; opacity: 0.65; }
+    .cyber-corner.tl { top: 10px; left: 10px; }
+    .cyber-corner.tr { top: 10px; right: 10px; }
+    .cyber-corner.bl { bottom: 10px; left: 10px; }
+    .cyber-corner.br { bottom: 10px; right: 10px; }
+    main.container { padding-inline: 0.75rem; }
+    .cyber-status-pill { font-size: 0.62rem; padding: 0.28rem 0.6rem; }
+    .btn { padding: 0.65rem 1rem !important; }
 }
 
-/* ============================================================
-   CYBER BUTTONS — tactical CTAs with multi-layer gradient
-   - .btn-success     : primary green→cyan (Encrypt / Submit)
-   - .btn-outline-success : ghosted secondary variant
-   - Plus a new neon-danger variant hooked to Bootstrap danger
-   ============================================================ */
-.btn-success {
-    background:
-        linear-gradient(135deg, var(--cyber-green) 0%, #059669 55%, var(--cyber-cyan) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.55) !important;
-    color: #ecfeff !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.02em;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        0 4px 18px rgba(16, 185, 129, 0.25);
-}
-.btn-success:hover {
-    background:
-        linear-gradient(135deg, #34d399 0%, #10b981 50%, #22d3ee 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 8px 28px rgba(16, 185, 129, 0.45),
-        0 0 40px rgba(34, 211, 238, 0.18);
-    transform: translateY(-1.5px);
-    border-color: rgba(52, 211, 153, 0.7) !important;
-}
-.btn-success:active {
-    transform: translateY(0);
-    box-shadow:
-        inset 0 2px 6px rgba(0, 0, 0, 0.35),
-        0 2px 12px rgba(16, 185, 129, 0.3);
+@media (max-width: 576px) {
+    body { font-size: 14.5px; }
+    .glass-card, .card.bg-dark { border-radius: var(--r-md); }
+    .cyber-brand .brand-name { font-size: 0.95rem; letter-spacing: 0.05em; }
+    .brand-version { display: none; }
+    .toast { min-width: 0 !important; width: calc(100vw - 2rem); }
 }
 
-.btn-outline-success {
-    border: 1px solid rgba(16, 185, 129, 0.6) !important;
-    color: var(--cyber-green-2) !important;
-    background: rgba(16, 185, 129, 0.05);
-    font-weight: 600 !important;
-    transition: all 0.25s ease !important;
-    box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.06);
+/* Respect reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+    .glass-card:hover, .card.bg-dark:hover { transform: none; }
+    .btn:hover { transform: none; }
 }
-.btn-outline-success:hover {
-    background: linear-gradient(135deg,
-        rgba(16, 185, 129, 0.18), rgba(34, 211, 238, 0.10));
-    border-color: rgba(52, 211, 153, 0.95) !important;
-    color: #a7f3d0 !important;
-    box-shadow:
-        0 6px 24px rgba(16, 185, 129, 0.28),
-        0 0 30px rgba(34, 211, 238, 0.08);
-    transform: translateY(-1px);
-}
-
-/* Boost Bootstrap danger buttons too — often used for reset/clear */
-.btn-danger {
-    background:
-        linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #ec4899 100%);
-    border: 1px solid rgba(239, 68, 68, 0.55) !important;
-    color: #fff1f2 !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.02em;
-    transition: all 0.3s ease !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        0 4px 18px rgba(239, 68, 68, 0.25);
-}
-.btn-danger:hover {
-    background:
-        linear-gradient(135deg, #f87171 0%, #ef4444 50%, #ec4899 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        0 8px 28px rgba(239, 68, 68, 0.42),
-        0 0 40px rgba(236, 72, 153, 0.15);
-    transform: translateY(-1.5px);
-    border-color: rgba(248, 113, 113, 0.7) !important;
-}
-
-/* ============================================================
-   TOASTS + PROGRESS + TABS — cyber SOC notifications
-   ============================================================ */
-.toast {
-    background:
-        linear-gradient(135deg, rgba(10, 15, 31, 0.97), rgba(5, 7, 15, 0.99)) !important;
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.55),
-        0 0 40px rgba(16, 185, 129, 0.10) !important;
-    position: relative;
-    overflow: hidden;
-}
-.toast::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg,
-        transparent, var(--cyber-green), var(--cyber-cyan), transparent);
-}
-.toast-container {
-    z-index: 1080 !important;
-}
-.toast {
-    min-width: 320px !important;
-    max-width: 100% !important;
-    animation: slideInRight 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-}
-
-.progress {
-    background-color: rgba(5, 7, 15, 0.85);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    border-radius: 9999px;
-    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-    height: 0.75rem;
-}
-.progress-bar {
-    background: linear-gradient(90deg,
-        var(--cyber-green), var(--cyber-cyan), var(--cyber-blue));
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-}
-
-.tab-content {
-    padding-top: 1rem;
-}
-
-/* Badge backgrounds: add missing bg-black-50 / bg-black-x helpers */
-.bg-black-50 {
-    background-color: rgba(5, 7, 15, 0.55) !important;
-}
-.bg-black-75 {
-    background-color: rgba(5, 7, 15, 0.82) !important;
-}
-
-/* Small accent helper: cyber pill badge (used in rainbow PWNED/CLEAN titles) */
-.badge.rounded-pill {
-    letter-spacing: 0.08em;
-    font-weight: 800;
-}
-
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(30px); }
-    to   { opacity: 1; transform: translateX(0);    }
-}
-
