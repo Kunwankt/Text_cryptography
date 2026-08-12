@@ -16,6 +16,18 @@ from utils.validators import validate_aes_key, validate_des_key, validate_not_em
 from utils.helpers import export_history_to_csv, export_history_to_json
 from utils.rainbow_lookup import generate_educational_payload, total_entries
 from routes.attack_routes import attack_bp
+from routes.games_routes import bp as games_bp
+from routes.auth_routes import auth_bp
+from firebase.user_service import (
+    current_session_user as _fw_current_user,
+    ensure_admin_exists,
+    is_admin as _fw_is_admin,
+    list_all_users,
+    update_game_progress,
+    record_device_id,
+    generate_device_id,
+)
+from flask import session as flask_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +37,10 @@ app.config.from_object(Config)
 csrf = CSRFProtect(app)
 
 app.register_blueprint(attack_bp)
+app.register_blueprint(games_bp)
+app.register_blueprint(auth_bp)
+
+_ADMIN_BOOTSTRAPPED = False
 
 # ---------------------------------------------------------------------------
 # Firebase / Firestore (optional). Only writes when configured.
@@ -144,6 +160,8 @@ def _ensure_history_table(conn: sqlite3.Connection) -> None:
         ("status",       "TEXT DEFAULT 'success'"),
         ("synced_firebase", "INTEGER DEFAULT 0"),
         ("firestore_doc_id",  "TEXT DEFAULT ''"),
+        ("owner_username", "TEXT DEFAULT ''"),
+        ("owner_device_id", "TEXT DEFAULT ''"),
     ]
     try:
         cursor = conn.execute("PRAGMA table_info(history)")
@@ -165,6 +183,20 @@ def _ensure_history_table(conn: sqlite3.Connection) -> None:
                 logger.warning("Could not add history column %s: %s", col_name, exc)
 
 
+try:
+    import atexit as _atexit
+    _ensure_db_dir()
+    init_db()
+    _ok = ensure_admin_exists()
+    if _ok:
+        _ADMIN_BOOTSTRAPPED = True
+        logger.info("Admin bootstrap: admin/ENCRYPTSYS112 user ensured in Firestore users collection.")
+    else:
+        logger.warning("Admin bootstrap skipped (Firebase unavailable). Admin login will still work once Firebase is up.")
+except Exception as _ae:
+    logger.warning("Admin bootstrap exception (ignored): %s", _ae)
+
+
 def _get_client_ip() -> str:
     """Best-effort client IP for auditing (never logged to plaintext files)."""
     try:
@@ -173,6 +205,61 @@ def _get_client_ip() -> str:
         return request.remote_addr or ""
     except RuntimeError:
         return ""
+
+
+def _current_user_doc():
+    """Return currently-authenticated user dict or None."""
+    try:
+        return _fw_current_user(flask_session)
+    except Exception:
+        return None
+
+
+def _current_is_admin() -> bool:
+    """Return True if current session has admin role."""
+    return _fw_is_admin(_current_user_doc())
+
+
+def _current_username() -> str:
+    """Return normalized username if logged in, else ''."""
+    u = _current_user_doc()
+    return str((u or {}).get("username") or "").strip().lower()
+
+
+def _get_or_create_device_id() -> str:
+    """Read device_id from cookie or generate a new one (doesn't set cookie)."""
+    try:
+        from flask import request as _req
+        cid = (_req.cookies.get("encryptsys_device_id") or "").strip()
+        if cid:
+            return cid
+    except Exception:
+        pass
+    try:
+        return generate_device_id()
+    except Exception:
+        return "unknown-" + str(int(time.time() * 1000))
+
+
+def _resolve_history_ownership_filters():
+    """For history queries: return (where_clause_str, params_list) to enforce user-scope.
+
+    ADMIN -> no filter.
+    LOGGED-IN USER -> owner_username match OR owner_device_id match.
+    GUEST -> only owner_device_id match (cookie based, no username).
+    """
+    if _current_is_admin():
+        return "", []
+    uname = _current_username()
+    did = _get_or_create_device_id()
+    if uname and did:
+        return " WHERE (owner_username = ? OR owner_device_id = ?)", [uname, did]
+    if uname:
+        return " WHERE owner_username = ?", [uname]
+    if did:
+        return " WHERE owner_device_id = ?", [did]
+    # Worst case: restrict to nothing so guests can't read cross-user data
+    return " WHERE 1 = 0", []
 
 
 def _firestore_add_history(doc_id: str, payload: dict) -> bool:
@@ -269,6 +356,8 @@ def add_to_history(
     local_time_iso: str | None = None,
     source: str | None = None,
     doc_id_override: str | None = None,
+    owner_username_override: str | None = None,
+    owner_device_id_override: str | None = None,
 ):
     """Add entry to SQLite history AND (optionally) Firebase Firestore.
 
@@ -323,14 +412,17 @@ def add_to_history(
     conn = None
     local_id = None
     doc_id = None
+    resolved_owner_username = str(owner_username_override or _current_username() or "")
+    resolved_owner_device_id = str(owner_device_id_override or _get_or_create_device_id() or "")
     try:
         conn = sqlite3.connect(app.config['DATABASE_PATH'])
         _ensure_history_table(conn)
         c = conn.cursor()
         c.execute(
             '''INSERT INTO history
-               (algorithm, operation, timestamp, content_length, client_ip, status, synced_firebase, firestore_doc_id)
-               VALUES (?, ?, ?, ?, ?, ?, 0, '')''',
+               (algorithm, operation, timestamp, content_length, client_ip, status, synced_firebase, firestore_doc_id,
+                owner_username, owner_device_id)
+               VALUES (?, ?, ?, ?, ?, ?, 0, '', ?, ?)''',
             (
                 algorithm,
                 operation,
@@ -338,6 +430,8 @@ def add_to_history(
                 int(content_length or 0),
                 result["client_ip"],
                 resolved_status,
+                resolved_owner_username,
+                resolved_owner_device_id,
             ),
         )
         local_id = c.lastrowid
@@ -377,6 +471,8 @@ def add_to_history(
             "source": resolved_source,
             "local_time": resolved_local_time,
             "execution_time": resolved_exec,
+            "owner_username": resolved_owner_username,
+            "owner_device_id": resolved_owner_device_id,
         }
         synced = _firestore_add_history(doc_id, fs_payload)
         result["firestore"] = bool(synced)
@@ -415,11 +511,13 @@ def _row_to_dict(cursor_cols, row) -> dict:
         "status": data.get("status") or "success",
         "synced_firebase": bool(data.get("synced_firebase") or 0),
         "firestore_doc_id": data.get("firestore_doc_id") or "",
+        "owner_username": data.get("owner_username") or "",
+        "owner_device_id": data.get("owner_device_id") or "",
     }
 
 
-def get_history():
-    """Get all history entries (newest first).
+def get_history(limit: int | None = None):
+    """Get history entries (newest first), scoped to current user/device unless admin.
 
     Returns ``[]`` on any DB failure (page renders still succeed)."""
     if not _ensure_db_dir():
@@ -430,7 +528,11 @@ def get_history():
         conn.row_factory = sqlite3.Row
         _ensure_history_table(conn)
         c = conn.cursor()
-        c.execute('SELECT * FROM history ORDER BY timestamp DESC')
+        where_str, params = _resolve_history_ownership_filters()
+        query = 'SELECT * FROM history' + where_str + ' ORDER BY timestamp DESC'
+        if limit and int(limit) > 0:
+            query += f' LIMIT {int(limit)}'
+        c.execute(query, params)
         rows = c.fetchall()
         cols = [d[0] for d in c.description]
         return [_row_to_dict(cols, tuple(r)) for r in rows]
@@ -448,10 +550,13 @@ def get_history():
 def delete_history_entry(entry_id):
     """Delete a history entry from SQLite and, when possible, from Firestore.
 
-    Returns True on success (local delete succeeded). Firestore delete
-    failure is logged but still returns True because the local entry is gone.
+    ADMIN-ONLY: returns False if caller is not admin (for route-level use,
+    route handlers should check first and return 403).
     """
     if not _ensure_db_dir():
+        return False
+    if not _current_is_admin():
+        logger.warning("delete_history_entry blocked: caller is not admin (entry_id=%s)", entry_id)
         return False
     conn = None
     firestore_doc = ""
@@ -487,8 +592,12 @@ def delete_history_entry(entry_id):
 def clear_history():
     """Clear ALL local history. If Firestore is configured, deletes ALL docs too.
 
-    Returns True on success (local clear succeeded)."""
+    ADMIN-ONLY: returns False if caller is not admin (route handlers should check first).
+    """
     if not _ensure_db_dir():
+        return False
+    if not _current_is_admin():
+        logger.warning("clear_history blocked: caller is not admin")
         return False
     all_docs: list[str] = []
     conn = None
@@ -539,6 +648,16 @@ def inject_globals():
                 local_count += 1
     except Exception:  # noqa: BLE001
         pass
+    user_doc = _current_user_doc()
+    is_authed = bool(user_doc)
+    is_admin_role = _fw_is_admin(user_doc)
+    safe_user = None
+    if user_doc:
+        safe_user = {
+            "username": user_doc.get("username"),
+            "display_name": user_doc.get("display_name"),
+            "role": user_doc.get("role", "user"),
+        }
     return {
         "firebase_configured": FIRESTORE_DB is not None,
         "firebase_project_id": FIRESTORE_PROJECT_ID,
@@ -548,6 +667,9 @@ def inject_globals():
             "synced_firebase": synced_count,
             "local_only": local_count,
         },
+        "current_user": safe_user,
+        "is_authenticated": is_authed,
+        "is_admin": bool(is_admin_role),
     }
 
 
@@ -1126,6 +1248,14 @@ def hash_lookup_stats():
 
 @app.route('/api/history/delete/<int:entry_id>', methods=['DELETE'])
 def delete_history(entry_id):
+    if not _current_is_admin():
+        return (
+            jsonify({
+                'success': False,
+                'error': 'FORBIDDEN: Only admin can delete audit log entries.',
+            }),
+            403,
+        )
     ok = delete_history_entry(entry_id)
     if not ok:
         return (
@@ -1140,6 +1270,14 @@ def delete_history(entry_id):
 
 @app.route('/api/history/clear', methods=['DELETE'])
 def clear_all_history():
+    if not _current_is_admin():
+        return (
+            jsonify({
+                'success': False,
+                'error': 'FORBIDDEN: Only admin can purge the audit log.',
+            }),
+            403,
+        )
     ok = clear_history()
     if not ok:
         return (
@@ -1150,6 +1288,53 @@ def clear_all_history():
             503,
         )
     return jsonify({'success': True})
+
+
+@app.route('/api/admin/users', methods=['GET'])
+def api_admin_list_users():
+    if not _current_is_admin():
+        return (
+            jsonify({
+                'success': False,
+                'error': 'FORBIDDEN: Admin-only endpoint.',
+            }),
+            403,
+        )
+    try:
+        users = list_all_users()
+        return jsonify({'success': True, 'users': users})
+    except Exception as exc:
+        return (
+            jsonify({
+                'success': False,
+                'error': f'User list query failed: {type(exc).__name__}',
+            }),
+            500,
+        )
+
+
+@app.after_request
+def _ensure_device_cookie(resp):
+    """Ensure every response carries the encryptsys_device_id cookie so user/device ownership of logs is stable."""
+    try:
+        existing = None
+        try:
+            from flask import request as _req
+            existing = (_req.cookies.get("encryptsys_device_id") or "").strip()
+        except Exception:
+            existing = None
+        if not existing:
+            new_did = generate_device_id()
+            resp.set_cookie(
+                "encryptsys_device_id",
+                new_did,
+                max_age=60 * 60 * 24 * 365 * 2,
+                httponly=True,
+                samesite="Lax",
+            )
+    except Exception:
+        pass
+    return resp
 
 
 @app.route('/api/history/export', methods=['GET'])
@@ -1251,5 +1436,20 @@ def performance_comparison():
 
 
 if __name__ == '__main__':
+    import sys
     init_db()
-    app.run(debug=True, port=5000)
+    host = '127.0.0.1'
+    port = 5000
+    use_reloader = True
+    i = 1
+    while i < len(sys.argv):
+        a = sys.argv[i]
+        if a == '--host' and i + 1 < len(sys.argv):
+            host = sys.argv[i + 1] ; i += 2
+        elif a == '--port' and i + 1 < len(sys.argv):
+            port = int(sys.argv[i + 1]) ; i += 2
+        elif a == '--no-reload':
+            use_reloader = False ; i += 1
+        else:
+            i += 1
+    app.run(debug=True, host=host, port=port, use_reloader=use_reloader)

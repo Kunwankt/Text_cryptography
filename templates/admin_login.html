@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}ADMIN GATEWAY — EncryptSys{% endblock %}
+
+{% block content %}
+<style>
+    .admin-glow-card {
+        box-shadow: 0 0 40px rgba(220,53,69,0.25), inset 0 0 30px rgba(220,53,69,0.05) !important;
+        border-color: rgba(220,53,69,0.6) !important;
+    }
+    .admin-blink {
+        animation: adminBlink 1.2s infinite;
+    }
+    @keyframes adminBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    .admin-bg-pattern {
+        background:
+          repeating-linear-gradient(0deg, rgba(220,53,69,0.03) 0, rgba(220,53,69,0.03) 1px, transparent 1px, transparent 3px),
+          repeating-linear-gradient(90deg, rgba(220,53,69,0.03) 0, rgba(220,53,69,0.03) 1px, transparent 1px, transparent 3px);
+    }
+</style>
+<div class="row justify-content-center align-items-center admin-bg-pattern" style="min-height: 70vh;">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="text-center mb-3">
+            <div class="text-danger small font-monospace mb-1 admin-blink">
+                <i class="fas fa-triangle-exclamation me-2"></i>RESTRICTED AREA — AUTHORIZED PERSONNEL ONLY
+                <i class="fas fa-triangle-exclamation ms-2"></i>
+            </div>
+        </div>
+        <div class="card bg-dark border border-danger glass-card cyber-panel admin-glow-card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <span class="badge bg-danger border border-danger rounded-pill px-4 py-2 mb-2 admin-blink">
+                            <i class="fas fa-lock me-2"></i>LEVEL-4 CLEARANCE REQUIRED
+                        </span>
+                        <div>
+                            <i class="fas fa-skull text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-danger mb-1"><i class="fas fa-user-astronaut me-2"></i>ADMIN GATEWAY</h3>
+                    <p class="text-light opacity-75 small mb-0">[ SYSTEM CONTROL TERMINAL ]</p>
+                    <div class="mt-2"><span class="font-monospace text-danger small">session://encryptsys/admin/auth/v2</span></div>
+                </div>
+
+                <hr class="border-danger border-opacity-50 mb-4">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                    <div class="alert alert-{{ category }} bg-{{ category }} bg-opacity-10 border border-{{ category }}-subtle mb-3" role="alert">
+                        <i class="fas fa-triangle-exclamation me-2"></i>{{ msg }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% if error %}
+                <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger-subtle mb-3" role="alert">
+                    <i class="fas fa-ban me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+
+                <form id="adminLoginForm" method="POST" action="/admin/login" class="mb-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label text-light">
+                            <i class="fas fa-user-secret me-1 text-danger"></i>Admin Handle
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-danger font-monospace">admin://</span>
+                            <input type="text" id="username" name="username" value="admin" class="form-control bg-dark text-light border-secondary font-monospace"
+                                   placeholder="admin" autocomplete="username" readonly required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-light">
+                            <i class="fas fa-key me-1 text-danger"></i>Master Key
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-danger font-monospace">key: </span>
+                            <input type="password" id="password" name="password" class="form-control bg-dark text-light border-secondary"
+                                   placeholder="••••••••••••" autocomplete="current-password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePw('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 py-3 fw-bold text-uppercase">
+                        <i class="fas fa-dungeon me-2"></i>BREACH ADMIN GATE
+                    </button>
+                </form>
+
+                <div class="text-center small">
+                    <p class="text-light opacity-50 mb-0">
+                        <i class="fas fa-fingerprint me-1"></i>
+                        All admin logins are audited. Non-admin users: <a href="/login" class="text-info text-decoration-none">[ USE USER LOGIN ]</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function togglePw(id) {
+        try {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.type = (el.type === "password") ? "text" : "password";
+        } catch(_) {}
+    }
+</script>
+{% endblock %}

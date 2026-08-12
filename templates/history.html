@@ -3,14 +3,48 @@
 {% block title %}History - Multi Algorithm Text Encryption System{% endblock %}
 
 {% block content %}
-<h2 class="mb-3 text-success"><i class="fas fa-history me-2"></i>Encryption History</h2>
+<h2 class="mb-3 text-success"><i class="fas fa-history me-2"></i>Audit Log — Encryption Activity
+
+    {% if is_admin %}
+        <span class="badge bg-danger border border-danger rounded-pill ms-2 fs-6">
+            <i class="fas fa-crown me-1"></i>ADMIN VIEW — ALL LOGS
+        </span>
+    {% elif is_authenticated %}
+        <span class="badge bg-success border border-success rounded-pill ms-2 fs-6">
+            <i class="fas fa-user-lock me-1"></i>YOUR LOGS ({{ current_user.username }})
+        </span>
+    {% else %}
+        <span class="badge bg-info border border-info rounded-pill ms-2 fs-6">
+            <i class="fas fa-microchip me-1"></i>DEVICE LOGS (GUEST)
+        </span>
+    {% endif %}
+</h2>
+
+{% if not is_admin %}
+<div class="alert alert-info bg-info bg-opacity-10 border border-info-subtle mb-3" role="alert">
+    <div class="d-flex gap-2 align-items-center">
+        <i class="fas fa-info-circle text-info fs-5"></i>
+        <div class="small text-light">
+            <strong class="text-info">Scope:</strong>
+            {% if is_authenticated %}
+                You are viewing logs tied to your account (<code class="text-info">{{ current_user.username }}</code>)
+                and your recognized device. Admins can view and delete all logs.
+            {% else %}
+                You are viewing logs tied to this device only.
+                <a href="/login" class="text-info-emphasis text-decoration-none fw-semibold">[ LOG IN ]</a>
+                to persist progress and view logs across devices.
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Top summary cards ------------------------------------------------------ -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card bg-dark border border-secondary glass-card h-100">
             <div class="card-body">
-                <h6 class="stat-card-label">Total Entries</h6>
+                <h6 class="stat-card-label">Visible Entries</h6>
                 <h3 class="text-success"><i class="fas fa-list-check me-2"></i>{{ history_counts.total }}</h3>
             </div>
         </div>
@@ -81,9 +115,15 @@
                     <i class="fas fa-file-code me-1"></i>Download JSON
                 </button>
             </div>
+            {% if is_admin %}
             <button class="btn btn-sm btn-outline-danger" onclick="clearHistory()">
-                <i class="fas fa-trash me-1"></i>Clear All
+                <i class="fas fa-trash me-1"></i>PURGE LOG (ADMIN)
             </button>
+            {% else %}
+            <span class="btn btn-sm btn-outline-secondary disabled" title="Only admin can clear logs">
+                <i class="fas fa-lock me-1"></i>Clear All — Admin Only
+            </span>
+            {% endif %}
         </div>
     </div>
     <div class="card-body">
@@ -94,6 +134,10 @@
                     <tr class="border-secondary">
                         <th style="width:70px;">ID</th>
                         <th style="width:150px;">Timestamp</th>
+                        {% if is_admin %}
+                        <th style="width:120px;">Owner</th>
+                        <th style="width:120px;" class="font-monospace text-nowrap">Device</th>
+                        {% endif %}
                         <th style="width:130px;">Algorithm</th>
                         <th style="width:130px;">Operation</th>
                         <th style="width:90px;" class="text-end">Size</th>
@@ -107,6 +151,24 @@
                     <tr class="border-secondary-subtle">
                         <td class="font-monospace text-light opacity-75">{{ item.id }}</td>
                         <td><span class="text-light small">{{ item.timestamp|int|timestamp_to_str }}</span></td>
+                        {% if is_admin %}
+                        <td>
+                            {% if item.owner_username %}
+                                <span class="badge bg-success-subtle border border-success text-success-emphasis rounded-pill font-monospace">
+                                    {{ item.owner_username }}
+                                </span>
+                            {% else %}
+                                <span class="text-light opacity-25 small">— guest —</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.owner_device_id %}
+                                <span class="font-monospace text-light opacity-60 small">{{ item.owner_device_id[:10] }}…</span>
+                            {% else %}
+                                <span class="text-light opacity-25 small">unknown</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             {% set algoClass = {
                                 'AES-256': 'bg-success',
@@ -163,11 +225,17 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
+                            {% if is_admin %}
                             <button class="btn btn-sm btn-outline-danger border-0"
                                     onclick="deleteHistoryEntry({{ item.id }})"
                                     title="Delete history entry #{{ item.id }}">
                                 <i class="fas fa-trash"></i>
                             </button>
+                            {% else %}
+                            <span class="text-light opacity-25 small" title="Only admin can delete entries">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

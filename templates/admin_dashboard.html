@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}ADMIN CONTROL PANEL — EncryptSys{% endblock %}
+
+{% block content %}
+<style>
+    .admin-panel-glow {
+        box-shadow: 0 0 30px rgba(220,53,69,0.18), inset 0 0 20px rgba(220,53,69,0.04);
+        border-color: rgba(220,53,69,0.5) !important;
+    }
+</style>
+
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+            <h2 class="text-danger mb-1">
+                <i class="fas fa-user-astronaut me-2"></i>ADMIN CONTROL PANEL
+            </h2>
+            <p class="text-light opacity-75 mb-0 small">[ OPERATOR: {{ admin_user.display_name or admin_user.username }} — LEVEL-4 CLEARANCE ]</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger border border-danger rounded-pill px-3 py-2">
+                <i class="fas fa-crown me-1"></i>ROOT ACCESS
+            </span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-power-off me-1"></i>LOG OUT
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Admin stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark border border-danger glass-card admin-panel-glow stat-card">
+            <div class="card-body text-center py-3">
+                <div class="stat-card-label">Total Users</div>
+                <h3 class="text-danger mb-1"><i class="fas fa-users me-1"></i><span id="adminStatUsers">—</span></h3>
+                <small class="text-light opacity-75">registered accounts</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/history" class="text-decoration-none stat-card-link" style="display:block;">
+            <div class="card bg-dark border border-warning glass-card stat-card clickable h-100">
+                <div class="card-body text-center py-3">
+                    <div class="stat-card-label">Audit Logs</div>
+                    <h3 class="text-warning mb-1"><i class="fas fa-scroll me-1"></i>ALL LOGS</h3>
+                    <small class="text-light opacity-75">view &amp; delete any entry →</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/attack-simulator" class="text-decoration-none stat-card-link" style="display:block;">
+            <div class="card bg-dark border border-info glass-card stat-card clickable h-100">
+                <div class="card-body text-center py-3">
+                    <div class="stat-card-label">Red Team Lab</div>
+                    <h3 class="text-info mb-1"><i class="fas fa-user-ninja me-1"></i>ATTACK SIM</h3>
+                    <small class="text-light opacity-75">cracking simulation →</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/games" class="text-decoration-none stat-card-link" style="display:block;">
+            <div class="card bg-dark border border-success glass-card stat-card clickable h-100">
+                <div class="card-body text-center py-3">
+                    <div class="stat-card-label">Training Arena</div>
+                    <h3 class="text-success mb-1"><i class="fas fa-gamepad me-1"></i>GAMES</h3>
+                    <small class="text-light opacity-75">crypto training →</small>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card bg-dark border border-danger glass-card admin-panel-glow">
+            <div class="card-header border-danger-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0 text-danger">
+                    <i class="fas fa-id-card-clip me-2"></i>REGISTERED USERS ROSTER
+                </h5>
+                <button class="btn btn-sm btn-outline-danger" onclick="refreshUserList()">
+                    <i class="fas fa-rotate me-1"></i>REFRESH
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-hover mb-0" id="adminUserTable">
+                        <thead>
+                            <tr class="border-danger border-opacity-50">
+                                <th>Username</th>
+                                <th>Display Name</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th>Last Login</th>
+                                <th>XP</th>
+                                <th>Games</th>
+                                <th>Wins</th>
+                                <th>Devices</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="9" class="text-center text-light opacity-50 py-4">Loading user roster…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0 text-white"><i class="fas fa-shield-halved me-2 text-success"></i>SECURITY QUICK ACTIONS</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/history" class="btn btn-outline-warning btn-lg">
+                        <i class="fas fa-eraser me-2"></i>VIEW / PURGE AUDIT LOGS
+                    </a>
+                    <a href="/attack-simulator" class="btn btn-outline-info btn-lg">
+                        <i class="fas fa-user-ninja me-2"></i>LAUNCH ATTACK SIMULATOR
+                    </a>
+                    <a href="/games" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-gamepad me-2"></i>OPEN CRYPTO GAMES ARENA
+                    </a>
+                    <a href="/dashboard" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-gauge-high me-2"></i>VIEW OPERATOR DASHBOARD
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card bg-dark border border-secondary glass-card h-100">
+            <div class="card-header border-secondary">
+                <h5 class="mb-0 text-white"><i class="fas fa-terminal me-2 text-danger"></i>ADMIN CONSOLE</h5>
+            </div>
+            <div class="card-body">
+                <div class="bg-black rounded border border-secondary p-3 font-monospace text-success small" id="adminConsole" style="min-height: 220px; max-height: 340px; overflow-y: auto;">
+<div class="text-info">[SYS] Admin session initialized for {{ admin_user.username }}</div>
+<div class="text-success-emphasis">[AUTH] Level-4 clearance confirmed. All channels unlocked.</div>
+<div class="text-warning">[AUDIT] All actions on this panel are recorded in the operator journal.</div>
+<div class="text-light opacity-75">> awaiting command…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+    const token = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+    async function refreshUserList() {
+        const tbody = document.querySelector("#adminUserTable tbody");
+        if (!tbody) return;
+        try {
+            const resp = await fetch("/api/admin/users", { credentials: "same-origin", headers: { "X-CSRFToken": token } });
+            const data = await resp.json();
+            if (!data || !data.success) throw new Error(data && data.error || "load failed");
+            const users = Array.isArray(data.users) ? data.users : [];
+            document.getElementById("adminStatUsers").textContent = String(users.length);
+            tbody.innerHTML = "";
+            if (!users.length) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-light opacity-50 py-4">No users registered yet.</td></tr>';
+                return;
+            }
+            users.sort(function (a, b) { return (a.created_at || "").localeCompare(b.created_at || ""); });
+            users.forEach(function (u) {
+                const gp = u.game_progress || {};
+                const tr = document.createElement("tr");
+                tr.innerHTML =
+                    '<td class="font-monospace text-danger">' + (u.username || "") + '</td>' +
+                    '<td>' + (u.display_name || "-") + '</td>' +
+                    '<td><span class="badge ' + (u.role === "admin" ? "bg-danger border border-danger" : "bg-success border border-success") + ' rounded-pill">' + (u.role || "user") + '</span></td>' +
+                    '<td class="small text-light opacity-75">' + (u.created_at || "-").slice(0, 19).replace("T", " ") + '</td>' +
+                    '<td class="small text-light opacity-75">' + ((u.last_login || "-").slice(0, 19).replace("T", " ") || "never") + '</td>' +
+                    '<td class="font-monospace text-success">' + String(gp.total_xp || 0) + '</td>' +
+                    '<td class="font-monospace text-info">' + String(gp.total_games_played || 0) + '</td>' +
+                    '<td class="font-monospace text-warning">' + String(gp.total_wins || 0) + '</td>' +
+                    '<td class="font-monospace">' + String((u.device_ids || []).length) + '</td>';
+                tbody.appendChild(tr);
+            });
+            const con = document.getElementById("adminConsole");
+            if (con) {
+                const line = document.createElement("div");
+                line.className = "text-success";
+                line.textContent = "[DB] Loaded " + users.length + " user accounts from Firestore roster.";
+                con.appendChild(line);
+                con.scrollTop = con.scrollHeight;
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load users: ' + (e.message || e) + '</td></tr>';
+        }
+    }
+    window.refreshUserList = refreshUserList;
+    document.addEventListener("DOMContentLoaded", function () { setTimeout(refreshUserList, 250); });
+})();
+</script>
+{% endblock %}

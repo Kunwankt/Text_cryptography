@@ -931,11 +931,8 @@ if (typeof module === 'undefined') {
             el.textContent = new Date(ts * 1000).toLocaleString();
         });
 
-        if (document.getElementById('perfRunBtn')) {
-            setTimeout(() => {
-                runPerformanceTest();
-            }, 350);
-        }
+        // NOTE: Performance benchmark runs ONLY when user explicitly clicks
+        // the "Run Benchmark Test" button. Never auto-execute on load.
 
         // ---- Rainbow lookup wiring -------------------------------------
         const rainbowInput = document.getElementById('rainbowHashInput');

@@ -900,9 +900,35 @@ hr {
     opacity: 1 !important;
 }
 
+/* Clickable card helpers (used by Tools / Activity / Performance top stat cards) */
+.clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.clickable:hover  { transform: translateY(-3px); }
+.clickable:active { transform: translateY(0); }
+
+.stat-card-link:hover { text-decoration: none !important; }
+.stat-card-link .stat-card { transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+.stat-card-link:hover .stat-card {
+    transform: translateY(-4px);
+    border-color: var(--br-3) !important;
+    box-shadow: var(--sh-3);
+}
+.stat-card-link.stat-tools:hover .stat-card { border-color: rgba(34,197,94,0.55) !important; }
+.stat-card-link.stat-history:hover .stat-card { border-color: rgba(234,179,8,0.55) !important; }
+button.stat-performance:hover .stat-card { border-color: rgba(59,130,246,0.55) !important; }
+
 /* ============================================================
    RESPONSIVE POLISH — mobile / tablet
    ============================================================ */
+@viewport { width: device-width; zoom: 1; }
+
+@media (max-width: 1199px) {
+    h1 { font-size: 1.7rem; }
+    h2 { font-size: 1.35rem; }
+    h3 { font-size: 1.1rem; }
+    main.container, main.container-fluid { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .row.g-4 { --bs-gutter-y: 1rem; }
+}
+
 @media (max-width: 992px) {
     .cyber-corner { width: 24px; height: 24px; opacity: 0.65; }
     .cyber-corner.tl { top: 10px; left: 10px; }
@@ -912,14 +938,80 @@ hr {
     main.container { padding-inline: 0.75rem; }
     .cyber-status-pill { font-size: 0.62rem; padding: 0.28rem 0.6rem; }
     .btn { padding: 0.65rem 1rem !important; }
+
+    /* Navbar: wrap badges / status onto their own row on tablets so links don't clip */
+    .cyber-navbar .navbar-collapse { gap: 0.75rem; }
+    .cyber-navbar .me-auto + div { flex-wrap: wrap; }
+
+    /* Tables: allow horizontal scroll & tighter cells */
+    .table-responsive { -webkit-overflow-scrolling: touch; }
+    .table.table-dark td, .table.table-dark th { padding: 0.55rem 0.45rem; }
+    .table.table-dark thead th { font-size: 0.72rem; letter-spacing: 0.02em; }
+
+    /* Input groups: buttons stack above input on small widths for fat-finger reach */
+    .input-group { flex-wrap: wrap; }
+    .input-group > .form-control { width: 100%; border-radius: var(--r-md) !important; margin-bottom: 0.4rem; }
+    .input-group > .btn,
+    .input-group > .btn-group { flex: 1 1 auto; width: auto; border-radius: var(--r-md) !important; }
+    .input-group .form-control:not(:only-child) { margin-right: 0 !important; }
+}
+
+@media (max-width: 768px) {
+    /* Break large grids on mobile */
+    .col-md-4, .col-lg-6, .col-lg-8, .col-lg-3 { width: 100% !important; }
+    .card.bg-dark .card-header, .glass-card .card-header { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+    .card.bg-dark .card-body, .glass-card .card-body { padding: 1rem; }
+
+    /* Tighten spacing around headings */
+    h2.mb-4, .h2.mb-4 { margin-bottom: 1rem !important; }
+    .row.g-4 { --bs-gutter-x: 0.75rem; --bs-gutter-y: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem !important; }
+
+    /* Navbar brand: hide version + shrink logo */
+    .cyber-navbar .brand-version { display: none; }
+    .cyber-navbar .cyber-brand .fa-shield-halved { font-size: 1.1rem; }
+    .cyber-navbar .navbar-brand { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .cyber-navbar .navbar-toggler { padding: 0.45rem 0.7rem; border-color: var(--br-3) !important; }
+    .cyber-navbar .navbar-toggler:focus { box-shadow: var(--focus); outline: none; }
+    .cyber-navbar .nav-link { padding: 0.75rem 0.95rem !important; }
+
+    /* Hide HUD corners in smallest portrait for more content area */
+    .cyber-corner { display: none; }
+    body { background-attachment: scroll; }
+
+    /* Hash & rainbow tables: allow horizontal touch scroll */
+    #perfResultsTable { overflow-x: auto; }
 }
 
 @media (max-width: 576px) {
     body { font-size: 14.5px; }
     .glass-card, .card.bg-dark { border-radius: var(--r-md); }
     .cyber-brand .brand-name { font-size: 0.95rem; letter-spacing: 0.05em; }
-    .brand-version { display: none; }
     .toast { min-width: 0 !important; width: calc(100vw - 2rem); }
+
+    /* Buttons: full-width in grids so fat fingers can tap them */
+    .btn-group.w-100 .btn { font-size: 0.85rem; padding: 0.65rem 0.4rem !important; }
+    .btn.w-100 { padding: 0.8rem 1rem !important; font-size: 1rem; }
+
+    /* Inputs / textareas: taller + easier to tap */
+    .form-control, textarea.form-control, input.form-control, .form-select {
+        min-height: 46px; font-size: 1rem;
+    }
+    textarea.form-control { min-height: 96px; }
+
+    /* Hero headings on small devices */
+    h1 { font-size: 1.45rem; }
+    h2 { font-size: 1.2rem; }
+
+    /* Dashboard stat cards */
+    #quickToolsSection .row > div { width: 50% !important; }
+    #quickToolsSection .card { padding: 1rem 0.5rem !important; }
+    #quickToolsSection .card i { font-size: 1.6rem !important; }
+}
+
+@media (max-width: 360px) {
+    .col-6 { width: 100% !important; }
+    .cyber-status-pill { display: none; }
 }
 
 /* Respect reduced motion users */
@@ -932,4 +1024,5 @@ hr {
     }
     .glass-card:hover, .card.bg-dark:hover { transform: none; }
     .btn:hover { transform: none; }
+    .clickable:hover { transform: none; }
 }

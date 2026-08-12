@@ -3,33 +3,164 @@
 {% block title %}Dashboard - Multi Algorithm Text Encryption System{% endblock %}
 
 {% block content %}
+<style>
+@keyframes hotspotPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(239,68,68,0.35), inset 0 0 10px rgba(239,68,68,0.05); }
+  50%      { box-shadow: 0 0 35px rgba(239,68,68,0.6),  inset 0 0 22px rgba(239,68,68,0.12); }
+}
+@keyframes hotspotPulseGold {
+  0%, 100% { box-shadow: 0 0 15px rgba(234,179,8,0.35), inset 0 0 10px rgba(234,179,8,0.06); }
+  50%      { box-shadow: 0 0 35px rgba(234,179,8,0.55), inset 0 0 22px rgba(234,179,8,0.12); }
+}
+.hotspot-attack { animation: hotspotPulse 2.6s ease-in-out infinite; border-color: rgba(239,68,68,0.65) !important; }
+.hotspot-games  { animation: hotspotPulseGold 2.6s ease-in-out infinite; border-color: rgba(234,179,8,0.65) !important; }
+.hotspot-badge {
+    animation: 1.8s ease-in-out infinite hotspotPulseGold;
+}
+</style>
 <h2 class="mb-4 text-success"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
 
 <div class="row g-4 mb-4">
     <div class="col-md-4">
-        <div class="card bg-dark border border-secondary glass-card">
-            <div class="card-body">
-                <h6 class="stat-card-label">Security Tools</h6>
-                <h3 class="text-success"><i class="fas fa-tools me-2"></i>Tools</h3>
+        <a href="#quickToolsSection" class="text-decoration-none stat-card-link stat-tools" style="display:block;">
+            <div class="card bg-dark border border-secondary glass-card h-100 stat-card clickable">
+                <div class="card-body">
+                    <h6 class="stat-card-label"><i class="fas fa-wand-magic-sparkles me-1 text-success"></i>Security Tools <span class="text-light opacity-50 small">(click to jump)</span></h6>
+                    <h3 class="text-success"><i class="fas fa-tools me-2"></i>Jump to Tools</h3>
+                    <p class="text-light opacity-75 small mb-0 mt-2">
+                        <span class="badge bg-success-subtle border border-success text-success-emphasis rounded-pill me-1">Encrypt</span>
+                        <span class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill me-1">Decrypt</span>
+                        <span class="badge bg-warning-subtle border border-warning text-warning-emphasis rounded-pill me-1">Hash</span>
+                        <span class="badge bg-secondary-subtle border border-secondary text-secondary-emphasis rounded-pill">Password</span>
+                    </p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-4">
-        <div class="card bg-dark border border-secondary glass-card">
-            <div class="card-body">
-                <h6 class="stat-card-label">Recent Activity</h6>
-                <h3 class="text-success"><i class="fas fa-history me-2"></i>{{ history|length }}</h3>
+        <a href="/history" class="text-decoration-none stat-card-link stat-history" style="display:block;">
+            <div class="card bg-dark border border-secondary glass-card h-100 stat-card clickable">
+                <div class="card-body">
+                    <h6 class="stat-card-label"><i class="fas fa-clock-rotate-left me-1 text-warning"></i>Recent Activity <span class="text-light opacity-50 small">(click to view all)</span></h6>
+                    <h3 class="text-success"><i class="fas fa-history me-2"></i>{{ history|length }} <span class="text-light opacity-75 fs-5 ms-1">events</span></h3>
+                    <p class="text-light opacity-75 small mb-0 mt-2">
+                        Last 5 shown below · <span class="text-warning">View complete history →</span>
+                    </p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-4">
-        <div class="card bg-dark border border-secondary glass-card">
-            <div class="card-body">
-                <h6 class="stat-card-label">Performance Last Run</h6>
-                <h3 class="text-success">
-                    <i class="fas fa-stopwatch me-2"></i>
-                    <span id="perfLastRunSummary">—</span>
-                </h3>
+        <button type="button" class="btn text-start p-0 w-100 stat-performance" onclick="window.location.hash='#perfChartWrapper'; document.getElementById('perfRunBtn').click();" style="background:transparent; border:none;">
+            <div class="card bg-dark border border-secondary glass-card h-100 stat-card clickable">
+                <div class="card-body">
+                    <h6 class="stat-card-label"><i class="fas fa-bolt me-1 text-info"></i>Performance <span class="text-light opacity-50 small">(click to benchmark)</span></h6>
+                    <h3 class="text-success">
+                        <i class="fas fa-stopwatch me-2"></i>
+                        <span id="perfLastRunSummary">Run</span>
+                    </h3>
+                    <p class="text-light opacity-75 small mb-0 mt-2">
+                        AES-256 · DES · RSA-2048 — <span class="text-info">compare speed now →</span>
+                    </p>
+                </div>
+            </div>
+        </button>
+    </div>
+</div>
+
+<!-- Quick-Tools jump section -->
+<div id="quickToolsSection" class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 text-white"><i class="fas fa-compass me-2 text-success"></i>Quick Tools Shortcuts</h5>
+        <small class="text-light opacity-75">One-click access to every module in this app</small>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/encrypt" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-success glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-lock text-success" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Encrypt</h6>
+                        <small class="text-light opacity-75">AES · DES · RSA</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/decrypt" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-info glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-unlock text-info" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Decrypt</h6>
+                        <small class="text-light opacity-75">AES · DES · RSA</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/education" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-primary glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-book text-primary" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Learn</h6>
+                        <small class="text-light opacity-75">How cryptography works</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/attack-simulator" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-danger glass-card h-100 clickable text-center p-3 hotspot-attack position-relative">
+                        <span class="position-absolute top-0 end-0 translate-middle-y me-2 mt-2">
+                            <span class="badge bg-danger border border-danger rounded-pill px-2 py-1 hotspot-badge">
+                                <i class="fas fa-bolt me-1"></i>HOT
+                            </span>
+                        </span>
+                        <i class="fas fa-user-secret text-danger" style="font-size:2.5rem;"></i>
+                        <h6 class="text-white mt-2 mb-0 fw-semibold">
+                            <i class="fas fa-ninja me-1 text-danger"></i>Attack Sim
+                        </h6>
+                        <small class="text-light opacity-90 fw-medium">🔴 Red Team Lab — Crack passwords</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/games" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-warning glass-card h-100 clickable text-center p-3 hotspot-games position-relative">
+                        <span class="position-absolute top-0 end-0 translate-middle-y me-2 mt-2">
+                            <span class="badge bg-warning text-dark border border-warning rounded-pill px-2 py-1 hotspot-badge">
+                                <i class="fas fa-fire me-1"></i>TRENDING
+                            </span>
+                        </span>
+                        <i class="fas fa-gamepad text-warning" style="font-size:2.5rem;"></i>
+                        <h6 class="text-white mt-2 mb-0 fw-semibold">
+                            <i class="fas fa-gamepad me-1 text-warning"></i>Crypto Games
+                        </h6>
+                        <small class="text-light opacity-90 fw-medium">🟡 Earn XP · Climb Ranks · Crazy Mode!</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="#perfChartWrapper" class="text-decoration-none d-block" onclick="document.getElementById('perfRunBtn').click();">
+                    <div class="card bg-dark border border-secondary glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-gauge-high text-light" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Benchmark</h6>
+                        <small class="text-light opacity-75">Speed comparison</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="#rainbowHashInput" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-warning glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-database text-warning" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Hash Lookup</h6>
+                        <small class="text-light opacity-75">Rainbow table demo</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/history" class="text-decoration-none d-block">
+                    <div class="card bg-dark border border-secondary glass-card h-100 clickable text-center p-3">
+                        <i class="fas fa-list-check text-light" style="font-size:2rem;"></i>
+                        <h6 class="text-white mt-2 mb-0">Full History</h6>
+                        <small class="text-light opacity-75">Activity log + CSV export</small>
+                    </div>
+                </a>
             </div>
         </div>
     </div>

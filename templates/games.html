@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Cryptography Games — Multi Algorithm Text Encryption System{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="text-success mb-2"><i class="fas fa-gamepad me-2"></i>Cryptography Games</h2>
+    <p class="text-light opacity-75 mb-0">
+        Learn ciphers, attacks, and crypto hygiene by playing — earn XP, build streaks, and climb the ranks.
+    </p>
+</div>
+
+<!-- Stats / Leaderboard summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark border border-secondary glass-card stat-card">
+            <div class="card-body text-center py-3">
+                <div class="stat-card-label">Total XP</div>
+                <h3 class="text-success mb-1"><i class="fas fa-star me-1"></i><span id="statTotalXP">{{ stats.total_xp_earned }}</span></h3>
+                <small class="text-light opacity-75">Rank: <b><span id="statRankName">{{ rank.name }}</span></b></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark border border-secondary glass-card stat-card">
+            <div class="card-body text-center py-3">
+                <div class="stat-card-label">Games Played</div>
+                <h3 class="text-info mb-1"><i class="fas fa-trophy me-1"></i><span id="statTotalGames">{{ stats.total_games_played }}</span></h3>
+                <small class="text-light opacity-75"><span id="statWins">{{ stats.wins_total }}</span> wins</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark border border-secondary glass-card stat-card">
+            <div class="card-body text-center py-3">
+                <div class="stat-card-label">Accuracy</div>
+                <h3 class="text-warning mb-1"><i class="fas fa-bullseye me-1"></i><span id="statAccuracy">0%</span></h3>
+                <small class="text-light opacity-75">Avg <span id="statAvgXP">{{ stats.average_xp_per_game }}</span> XP / round</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card bg-dark border border-secondary glass-card stat-card">
+            <div class="card-body text-center py-3">
+                <div class="stat-card-label">Daily Streak</div>
+                <h3 class="text-danger mb-1"><i class="fas fa-fire me-1"></i><span id="statStreak">{{ stats.daily_streak }}</span></h3>
+                <small class="text-light opacity-75">🔥 Keep the chain alive</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rank progression bar -->
+<div class="card bg-dark border border-secondary glass-card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div>
+                <h6 class="mb-1 text-white">
+                    <i class="fas {{ rank.icon }} me-2 text-success"></i>
+                    Current rank: <span class="text-success fw-bold">{{ rank.name }}</span>
+                    <small class="text-light opacity-75 ms-2">({{ rank.title }})</small>
+                </h6>
+                <small class="text-light opacity-75">Keep playing — every round counts toward the next rank.</small>
+            </div>
+            <div class="text-end small font-monospace">
+                <div id="rankProgressInfo">{{ rank.min_xp }} XP required</div>
+                <div class="text-light opacity-75"><span id="rankNextName">{{ rank.name }}</span> next</div>
+            </div>
+        </div>
+        <div class="progress" style="height: 22px;">
+            <div id="rankProgressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div class="row g-2 mt-3 text-center small font-monospace">
+            {% for r in ranks %}
+            <div class="col col-lg-2-4" style="flex:1 1 0; min-width: 0;">
+                <div class="d-flex flex-column align-items-center gap-1">
+                    <i class="fas {{ r.icon }} text-light opacity-75"></i>
+                    <span class="badge bg-black-50 border border-secondary rounded-pill">{{ r.name }}</span>
+                    <span class="text-light opacity-50">{{ r.min_xp }} XP</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Games grid -->
+<h5 class="text-white mb-3"><i class="fas fa-layer-group me-2 text-success"></i>Game Library</h5>
+<div class="row g-3 mb-5" id="gamesGrid">
+    {% for g in games %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card bg-dark border border-secondary glass-card h-100 game-card game-card-color-{{ g.color }}" data-game-id="{{ g.id }}">
+            <div class="card-header border-secondary d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <h6 class="mb-0 text-white">
+                    <i class="fas {{ g.icon }} me-2 text-{{ g.color }}"></i>{{ g.name }}
+                </h6>
+                <span class="badge bg-{{ g.color }}-subtle border border-{{ g.color }} text-{{ g.color }}-emphasis rounded-pill">{{ g.xp_range }}</span>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <p class="text-light opacity-85 small mb-2">{{ g.short_description }}</p>
+                <p class="text-light opacity-60 small mb-3 flex-grow-1">{{ g.long_description }}</p>
+
+                <div class="d-flex flex-wrap gap-2 mb-3 small">
+                    {% for diff in g.difficulties %}
+                    <span class="badge bg-black-50 border border-secondary rounded-pill">{{ diff }}</span>
+                    {% endfor %}
+                    {% if g.timer %}<span class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill"><i class="fas fa-stopwatch me-1"></i>Timer</span>{% endif %}
+                    {% if g.lives %}<span class="badge bg-danger-subtle border border-danger text-danger-emphasis rounded-pill"><i class="fas fa-heart me-1"></i>Lives</span>{% endif %}
+                    {% if g.hints %}<span class="badge bg-warning-subtle border border-warning text-warning-emphasis rounded-pill"><i class="fas fa-lightbulb me-1"></i>Hints</span>{% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3 small">
+                    <span class="text-light opacity-75"><i class="fas fa-chart-line me-1"></i>Best</span>
+                    <span class="font-monospace text-{{ 'danger' if g.color == 'danger' else 'success' }}">
+                        <span class="game-best" data-game-id="{{ g.id }}">—</span>
+                    </span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    {% if g.difficulties and g.difficulties|length > 1 and g.id != 'encryption_race' and g.id != 'find_vulnerability' and g.id != 'daily_cipher' %}
+                    <div class="btn-group" role="group">
+                        {% for diff in g.difficulties %}
+                        <button class="btn btn-outline-{{ g.color }} btn-diff-select"
+                                data-game-id="{{ g.id }}"
+                                data-diff="{{ diff|lower }}">
+                            {{ diff }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% elif g.difficulties and g.id == 'crazy_mode' %}
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-{{ g.color }} btn-diff-select active"
+                                data-game-id="{{ g.id }}"
+                                data-diff="{{ g.difficulties[0]|lower }}">
+                            {{ g.difficulties[0] }}
+                        </button>
+                    </div>
+                    {% endif %}
+                    <button class="btn btn-{{ g.color }} btn-play-game"
+                            data-game-id="{{ g.id }}"
+                            data-diff="{{ (g.difficulties[0]|lower) if g.difficulties else 'easy' }}">
+                        <i class="fas fa-play me-2"></i>
+                        {% if g.id == 'daily_cipher' %}Play Today's Challenge{% elif g.id == 'crazy_mode' %}🔥 ENTER CRAZY MODE 🔥{% else %}Play{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Game Runner Modal -->
+<div class="modal fade" id="gameRunnerModal" tabindex="-1" aria-labelledby="gameRunnerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content bg-dark border border-secondary glass-card">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="gameRunnerLabel">
+                    <i class="fas fa-gamepad me-2 text-success"></i>
+                    <span id="runnerGameName">Game</span>
+                    <span class="badge bg-black-50 border border-secondary rounded-pill ms-2" id="runnerGameDiff">Easy</span>
+                </h5>
+                <div class="d-flex align-items-center gap-3 me-3">
+                    <div class="small text-nowrap" title="Time remaining">
+                        <i class="fas fa-stopwatch me-1 text-info"></i>
+                        <span class="font-monospace text-info" id="runnerTimer">--:--</span>
+                    </div>
+                    <div class="small text-nowrap" title="Lives remaining">
+                        <i class="fas fa-heart me-1 text-danger"></i>
+                        <span class="font-monospace text-danger" id="runnerLives">3</span>
+                    </div>
+                    <div class="small text-nowrap" title="Hints used">
+                        <i class="fas fa-lightbulb me-1 text-warning"></i>
+                        <span class="font-monospace text-warning" id="runnerHints">0</span>
+                    </div>
+                    <div class="small text-nowrap" title="Score for this round">
+                        <i class="fas fa-star me-1 text-success"></i>
+                        <span class="font-monospace text-success" id="runnerScore">0</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Progress stage -->
+                <ol class="progress-pipeline mb-4 small">
+                    <li class="stage active" data-stage="1"><span>1</span>Challenge Loaded</li>
+                    <li class="stage" data-stage="2"><span>2</span>Analyze</li>
+                    <li class="stage" data-stage="3"><span>3</span>Your Answer</li>
+                    <li class="stage" data-stage="4"><span>4</span>Result</li>
+                </ol>
+
+                <!-- Prompt / ciphertext -->
+                <div class="card bg-dark border border-secondary glass-card mb-3">
+                    <div class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h6 class="mb-0 text-white"><i class="fas fa-terminal me-2 text-success"></i>Challenge</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="runnerAlgoBadge" class="badge bg-black-50 border border-secondary rounded-pill d-none">—</span>
+                            <span id="runnerTargetInfo" class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill d-none">—</span>
+                        </div>
+                    </div>
+                    <div class="card-body font-monospace">
+                        <div id="runnerCode" class="text-light small mb-0"></div>
+                        <pre id="runnerCiphertext" class="text-success mt-3 mb-0 p-3 rounded bg-black-75 border border-secondary" style="white-space: pre-wrap; word-break: break-all;"></pre>
+                    </div>
+                </div>
+
+                <!-- Interaction: answer form varies by game -->
+                <div id="runnerInteraction" class="card bg-dark border border-secondary glass-card mb-3">
+                    <div class="card-header border-secondary">
+                        <h6 class="mb-0 text-white"><i class="fas fa-keyboard me-2 text-warning"></i>Your Answer</h6>
+                    </div>
+                    <div class="card-body" id="runnerAnswerSlot">
+                        <div class="text-light opacity-75">Loading challenge…</div>
+                    </div>
+                </div>
+
+                <!-- Hints -->
+                <div class="card bg-dark border border-secondary glass-card mb-3 d-none" id="runnerHintsCard">
+                    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 text-white"><i class="fas fa-lightbulb me-2 text-warning"></i>Hints <small class="opacity-50">(cost score)</small></h6>
+                        <button class="btn btn-sm btn-outline-warning" id="btnRevealHint" type="button">
+                            <i class="fas fa-eye me-1"></i>Reveal Next Hint
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ol id="runnerHintList" class="mb-0 small"></ol>
+                    </div>
+                </div>
+
+                <!-- Result / explanation -->
+                <div class="card bg-dark border border-secondary glass-card d-none" id="runnerResultCard">
+                    <div id="runnerResultHeader" class="card-header border-secondary">
+                        <h6 class="mb-0 text-white"><i class="fas fa-flag-checkered me-2"></i>Result</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="runnerResultBody"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary d-flex flex-wrap gap-2 justify-content-between">
+                <div class="small text-light opacity-75">
+                    <span id="runnerFooterMsg"></span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary" id="btnQuitGame" data-bs-dismiss="modal">
+                        <i class="fas fa-door-open me-1"></i>Quit
+                    </button>
+                    <button type="button" class="btn btn-outline-danger d-none" id="btnRetryGame">
+                        <i class="fas fa-rotate me-1"></i>Retry
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnNextGame">
+                        <i class="fas fa-forward me-1"></i>New Round
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}?v=20260812d">
+<script>
+  window.__GAMES_INITIAL = {
+    stats: {{ stats|tojson }},
+    rank: {{ rank|tojson }},
+    ranks: {{ ranks|tojson }},
+    daily: {{ daily|tojson }},
+    games: {{ games|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/games.js') }}?v=20260812d"></script>
+{% endblock %}

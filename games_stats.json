@@ -1,0 +1,32 @@
+{
+  "total_games_played": 51,
+  "total_xp_earned": 1619,
+  "daily_streak": 0,
+  "last_daily_complete_date": null,
+  "best_scores": {
+    "crack_cipher": 800,
+    "brute_force": 651,
+    "cipher_puzzle": 50,
+    "hash_detective": 858,
+    "find_vulnerability": 900,
+    "encryption_race": 893,
+    "crazy_mode": 5500
+  },
+  "wins": {
+    "crack_cipher": 1,
+    "brute_force": 3,
+    "hash_detective": 5,
+    "find_vulnerability": 16,
+    "encryption_race": 3,
+    "crazy_mode": 2
+  },
+  "games_finished": {
+    "crack_cipher": 9,
+    "brute_force": 6,
+    "cipher_puzzle": 2,
+    "hash_detective": 5,
+    "find_vulnerability": 18,
+    "encryption_race": 4,
+    "crazy_mode": 7
+  }
+}
