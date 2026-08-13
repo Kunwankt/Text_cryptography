@@ -167,7 +167,7 @@ def admin_login_page():
     password = str(data.get("password") or "")
 
     if username.lower() not in ADMIN_ALLOWED_USERNAMES:
-        is_api = request.accept_mimetypes.accept_json or (request.get_json(silent=True) is not None)
+        is_api = _is_json_request()
         err = "This login page is for ADMIN only."
         if is_api:
             return jsonify({"success": False, "error": err}), 403
@@ -179,7 +179,7 @@ def admin_login_page():
         ok = False
         msg = "Account is not an admin account."
 
-    is_api = request.accept_mimetypes.accept_json or (request.get_json(silent=True) is not None)
+    is_api = _is_json_request()
     if ok:
         _touch_session(user_doc["username"], "admin")
         device_id = request.cookies.get("encryptsys_device_id") or generate_device_id()

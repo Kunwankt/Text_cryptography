@@ -149,6 +149,47 @@
     {% endfor %}
 </div>
 
+<!-- ==========================================================
+     REUSABLE HOW-TO-PLAY MODAL (shared by all game info icons)
+     ========================================================== -->
+<div class="modal fade" id="howToPlayModal" tabindex="-1" aria-labelledby="howToPlayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark border border-info glass-card">
+            <div class="modal-header border-info-subtle">
+                <h5 class="modal-title text-info" id="howToPlayModalLabel">
+                    <i class="fas fa-circle-info me-2"></i>
+                    <span id="htpGameName"><i>Game</i></span> — How to Play
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card bg-dark border border-info bg-opacity-50 mb-3">
+                    <div class="card-header border-info-subtle">
+                        <h6 class="mb-0 text-info-emphasis"><i class="fas fa-book me-1"></i>📘 Rules & Goal</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="htpRules" class="small text-light"></div>
+                    </div>
+                </div>
+                <div class="card bg-dark border border-success bg-opacity-50">
+                    <div class="card-header border-success-subtle">
+                        <h6 class="mb-0 text-success-emphasis"><i class="fas fa-lightbulb me-1"></i>💡 Worked Example</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre id="htpExample" class="small text-light mb-0 p-3 rounded" style="white-space:pre-wrap; background:rgba(0,0,0,0.35); border:1px solid rgba(22,163,74,0.25);"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-info-subtle">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" id="htpPlayNowBtn">
+                    <i class="fas fa-play me-1"></i>Play This Game Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Game Runner Modal -->
 <div class="modal fade" id="gameRunnerModal" tabindex="-1" aria-labelledby="gameRunnerLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -259,15 +300,102 @@
 
 {% block scripts %}
 {{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}?v=20260812d">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}?v=20260813e">
 <script>
   window.__GAMES_INITIAL = {
     stats: {{ stats|tojson }},
     rank: {{ rank|tojson }},
     ranks: {{ ranks|tojson }},
     daily: {{ daily|tojson }},
-    games: {{ games|tojson }}
+    games: {{ games|tojson }},
+    leaderboard: {{ leaderboard|tojson|default('[]', true) }}
   };
+
+  /* ---------- How-to-Play modal: opens from the (i) button on every game card ---------- */
+  let _htpModal = null;
+  let _htpPendingGameId = null;
+  function openHowToPlayModal(gameId) {
+    try {
+      const game = (window.__GAMES_INITIAL.games || []).find(g => g && g.id === gameId);
+      if (!game) return;
+      _htpPendingGameId = gameId;
+      document.getElementById("htpGameName").textContent = game.name || "Game";
+      const rulesEl = document.getElementById("htpRules");
+      const exEl = document.getElementById("htpExample");
+      rulesEl.innerHTML = (game.how_to_play || "No how-to-play text yet.").replace(/\n/g, "<br>");
+      exEl.textContent = game.example || "(no example yet)";
+      if (!_htpModal) {
+        try { _htpModal = new bootstrap.Modal(document.getElementById("howToPlayModal"), { backdrop: true }); }
+        catch (_e) { _htpModal = null; }
+      }
+      if (_htpModal) _htpModal.show();
+    } catch (_e) { console.warn("openHowToPlayModal failed:", _e); }
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    const playNowBtn = document.getElementById("htpPlayNowBtn");
+    if (playNowBtn) playNowBtn.addEventListener("click", function () {
+      if (!_htpPendingGameId) return;
+      // Find the corresponding Play button on the grid and programmatically click it
+      const card = document.querySelector(`.game-card[data-game-id="${_htpPendingGameId}"]`);
+      if (!card) return;
+      const diffBtns = card.querySelectorAll(".btn-diff-select");
+      const activeDiff = (diffBtns.length && card.querySelector(".btn-diff-select.active"))
+        ? card.querySelector(".btn-diff-select.active").getAttribute("data-diff")
+        : (((window.__GAMES_INITIAL.games || []).find(g => g.id === _htpPendingGameId) || {}).difficulties || ["easy"])[0].toLowerCase();
+      const playBtn = card.querySelector(`.btn-play-game[data-game-id="${_htpPendingGameId}"]`);
+      if (playBtn) { playBtn.setAttribute("data-diff", activeDiff || "easy"); playBtn.click(); }
+    });
+    // Activate Bootstrap popovers on info buttons as hover-preview fallback
+    try { const ps = window.bootstrap ? window.bootstrap.Popover : null; if (ps) ps.getOrCreateInstance(
+      document.body, { selector: '[data-bs-toggle="popover"]', sanitize: false, html: true, container: 'body', delay: { show: 250, hide: 150 } }
+    ); } catch(_e) {}
+  });
+
+  /* ---------- PUBLIC LEADERBOARD: refresh via API (no auth needed) ---------- */
+  function escapeHtml(str) {
+    return String(str == null ? "" : str)
+      .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+  }
+  function renderLeaderboard(rows) {
+    const tbody = document.getElementById("leaderboardTbody");
+    if (!tbody) return;
+    if (!rows || !rows.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-light opacity-60">
+        <i class="fas fa-users-slash me-2 opacity-50"></i>No players yet. Be first!</td></tr>`;
+      return;
+    }
+    const medalFor = (i) => i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
+    tbody.innerHTML = rows.map((p, idx) => {
+      const isLocal = p.source === "local";
+      return `<tr class="${isLocal ? "table-warning bg-warning bg-opacity-10 border-warning border-opacity-40" : "border-secondary-subtle"}">
+        <td class="text-center font-monospace text-light opacity-75">${medalFor(idx)}</td>
+        <td>
+          ${p.is_admin ? `<span class="badge bg-danger-subtle border border-danger text-danger-emphasis rounded-pill me-1 px-2">ADMIN</span>` : ""}
+          <span class="fw-semibold ${isLocal ? "text-warning-emphasis" : "text-light"}">${escapeHtml(p.display_name)}</span>
+          ${isLocal ? `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill ms-1 fs-7">THIS DEVICE</span>` : ""}
+        </td>
+        <td><span class="badge bg-black-50 border border-secondary rounded-pill"><i class="fas fa-crosshairs me-1 text-success"></i>${escapeHtml(p.rank || "Novice")}</span></td>
+        <td class="text-end font-monospace"><b class="text-success">${(p.xp || 0).toLocaleString('en-IN')}</b> XP</td>
+        <td class="text-center font-monospace text-light opacity-80">${p.wins || 0}</td>
+        <td class="text-center">
+          ${p.streak >= 1 ? `<span class="badge bg-danger-subtle text-danger-emphasis border border-danger rounded-pill"><i class="fas fa-fire me-1"></i>${p.streak}</span>` : `<span class="text-light opacity-30">—</span>`}
+        </td>
+        <td class="text-center font-monospace">
+          ${p.crazy_best > 0 ? `<span class="text-danger fw-bold">${p.crazy_best}</span>` : `<span class="text-light opacity-30">—</span>`}
+        </td>
+      </tr>`;
+    }).join("");
+  }
+  async function refreshLeaderboard() {
+    try {
+      const r = await fetch("/api/games/leaderboard", { cache: "no-store" });
+      const j = await r.json();
+      if (j && j.success && Array.isArray(j.leaderboard)) {
+        renderLeaderboard(j.leaderboard);
+      }
+    } catch (_e) { console.warn("leaderboard refresh failed:", _e); }
+  }
 </script>
-<script src="{{ url_for('static', filename='js/games.js') }}?v=20260812d"></script>
+<script src="{{ url_for('static', filename='js/games.js') }}?v=20260813e"></script>
 {% endblock %}
