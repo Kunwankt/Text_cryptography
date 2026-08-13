@@ -236,33 +236,50 @@ body.modal-open #gameRunnerModal .modal-dialog * {
 @keyframes crazyCardPulse {
     0%, 100% {
         box-shadow: 0 0 0 rgba(220, 38, 38, 0.0),
-                    0 10px 40px rgba(0,0,0,0.5);
+                    0 10px 40px rgba(0,0,0,0.5),
+                    inset 0 1px 0 rgba(255,255,255,0.03);
         border-color: rgba(220, 38, 38, 0.55);
         transform: translateY(0);
+        filter: brightness(1) contrast(1);
+    }
+    25% {
+        border-color: rgba(249, 115, 22, 0.95);
+        filter: brightness(1.05) contrast(1.02);
     }
     50% {
-        box-shadow: 0 0 42px rgba(220, 38, 38, 0.65),
-                    0 0 100px rgba(239, 68, 68, 0.35),
-                    0 14px 60px rgba(0,0,0,0.6);
-        border-color: rgba(239, 68, 68, 1);
-        transform: translateY(-2px);
+        box-shadow: 0 0 55px rgba(220, 38, 38, 0.85),
+                    0 0 140px rgba(239, 68, 68, 0.55),
+                    0 0 220px rgba(248, 113, 113, 0.25),
+                    0 18px 80px rgba(0,0,0,0.7);
+        border-color: rgba(255, 56, 56, 1);
+        transform: translateY(-3px);
+        filter: brightness(1.1) contrast(1.05) saturate(1.15);
+    }
+    75% {
+        border-color: rgba(185, 28, 28, 0.9);
     }
 }
 @keyframes crazyCardShake {
-    0%, 100% { transform: translateX(0) translateY(0); }
-    20%      { transform: translateX(-1px) translateY(-1px); }
-    40%      { transform: translateX(1px)  translateY(-2px); }
-    60%      { transform: translateX(-1px) translateY(0px);  }
-    80%      { transform: translateX(1px)  translateY(-1px); }
+    0%, 100% { transform: translateX(0) translateY(0) rotate(0); }
+    10%      { transform: translateX(-2px) translateY(-1px) rotate(-0.3deg); }
+    20%      { transform: translateX(2px)  translateY(-3px) rotate(0.4deg); }
+    30%      { transform: translateX(-2px) translateY(0px)  rotate(-0.2deg); }
+    40%      { transform: translateX(3px)  translateY(-2px) rotate(0.5deg); }
+    50%      { transform: translateX(-1px) translateY(-4px) rotate(-0.4deg); }
+    60%      { transform: translateX(2px)  translateY(-1px) rotate(0.2deg); }
+    70%      { transform: translateX(-3px) translateY(-3px) rotate(-0.3deg); }
+    80%      { transform: translateX(1px)  translateY(-2px) rotate(0.3deg); }
+    90%      { transform: translateX(-2px) translateY(0px)  rotate(-0.1deg); }
 }
 .game-card-color-danger {
-    border-color: rgba(220, 38, 38, 0.65) !important;
-    animation: crazyCardPulse 2.4s ease-in-out infinite,
-               crazyCardShake 4.2s ease-in-out infinite;
+    border-color: rgba(220, 38, 38, 0.85) !important;
+    animation: crazyCardPulse 2.0s ease-in-out infinite,
+               crazyCardShake 5.8s ease-in-out infinite;
     background:
-        radial-gradient(circle at 8% 8%, rgba(220,38,38,0.16), transparent 40%),
-        radial-gradient(circle at 92% 92%, rgba(249,115,22,0.14), transparent 40%),
-        linear-gradient(180deg, rgba(15,20,29,0.98), rgba(11,15,22,0.98)) !important;
+        radial-gradient(circle at 8% 8%, rgba(220,38,38,0.22), transparent 45%),
+        radial-gradient(circle at 92% 92%, rgba(249,115,22,0.20), transparent 45%),
+        radial-gradient(circle at 50% 0%, rgba(185, 28, 28, 0.12), transparent 55%),
+        linear-gradient(180deg, rgba(15,20,29,0.98), rgba(8, 12, 18, 0.99)) !important;
     position: relative;
     overflow: hidden;
 }
@@ -274,34 +291,37 @@ body.modal-open #gameRunnerModal .modal-dialog * {
         repeating-linear-gradient(
             115deg,
             transparent 0px, transparent 10px,
-            rgba(220,38,38,0.04) 10px,
-            rgba(220,38,38,0.04) 11px
+            rgba(220,38,38,0.05) 10px,
+            rgba(220,38,38,0.05) 11px
         );
     pointer-events: none;
     z-index: 1;
 }
 .game-card-color-danger::after {
-    content: "☠️ EXTREME";
+    content: "☠️ DANGER";
     position: absolute;
-    top: 12px;
-    right: -44px;
-    background: linear-gradient(90deg, #dc2626, #f97316);
+    top: 16px;
+    right: -52px;
+    background: linear-gradient(90deg, #7f1d1d, #dc2626 50%, #f97316);
     color: #fff;
     font-family: var(--font-mono);
-    font-weight: 800;
-    font-size: 0.72rem;
-    padding: 3px 48px;
+    font-weight: 900;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    padding: 4px 56px;
     transform: rotate(40deg);
-    letter-spacing: 1px;
-    box-shadow: 0 2px 10px rgba(220,38,38,0.6);
+    box-shadow: 0 3px 14px rgba(220,38,38,0.8),
+                0 0 30px rgba(248, 113, 113, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.25);
     z-index: 3;
     pointer-events: none;
-    opacity: 0.95;
+    opacity: 1;
+    text-transform: uppercase;
 }
 .game-card-color-danger .card-header {
     background: linear-gradient(90deg,
-        rgba(220, 38, 38, 0.20),
-        rgba(239, 68, 68, 0.06),
+        rgba(220, 38, 38, 0.25),
+        rgba(239, 68, 68, 0.08),
         transparent) !important;
     border-color: rgba(220, 38, 38, 0.4) !important;
     position: relative;
@@ -312,20 +332,117 @@ body.modal-open #gameRunnerModal .modal-dialog * {
     z-index: 2;
 }
 .game-card-color-danger .btn-play-game {
-    background: linear-gradient(180deg, #ef4444, #b91c1c) !important;
-    border-color: rgba(220, 38, 38, 0.9) !important;
-    box-shadow: 0 6px 22px rgba(220, 38, 38, 0.45),
-                inset 0 1px 0 rgba(255,255,255,0.12);
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    background: linear-gradient(180deg, #ef4444 0%, #b91c1c 60%, #7f1d1d 100%) !important;
+    border-color: rgba(248, 113, 113, 1) !important;
+    box-shadow: 0 6px 26px rgba(220, 38, 38, 0.65),
+                0 0 35px rgba(239, 68, 68, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.18),
+                inset 0 -2px 0 rgba(0,0,0,0.3);
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+.game-card-color-danger .btn-play-game::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,0.14) 50%,
+        transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+}
+.game-card-color-danger .btn-play-game:hover::before {
+    transform: translateX(100%);
 }
 .game-card-color-danger .btn-play-game:hover {
-    filter: brightness(1.08) saturate(1.1);
-    transform: translateY(-1px);
+    filter: brightness(1.12) saturate(1.15);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 35px rgba(220, 38, 38, 0.8),
+                0 0 55px rgba(239, 68, 68, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.2);
 }
 .game-card-color-danger .btn-diff-select.active {
     background: linear-gradient(180deg, #ef4444, #b91c1c) !important;
     color: #fff !important;
     border-color: rgba(220, 38, 38, 0.8) !important;
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+    box-shadow: 0 4px 18px rgba(220, 38, 38, 0.45) !important;
+}
+
+/* ===========================================================
+   INFO BUTTONS / BRANDING — NO HOVER UNDERLINE (per spec)
+   =========================================================== */
+.card-header button[onclick*="openHowToPlay"],
+.btn-sm.btn-outline-info[onclick*="openHowToPlay"],
+.brand-button,
+.encryptsys-brand a,
+a.encryptsys-brand {
+    text-decoration: none !important;
+}
+.card-header button[onclick*="openHowToPlay"]:hover,
+.btn-sm.btn-outline-info[onclick*="openHowToPlay"]:hover {
+    text-decoration: none !important;
+}
+button[title="How to play"]:hover,
+button[title="How to play · rules & worked example"]:hover {
+    text-decoration: none !important;
+}
+
+/* ===========================================================
+   LEADERBOARD TABLE STYLING
+   =========================================================== */
+.table-responsive table tbody tr {
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.table-responsive table tbody tr:hover {
+    background-color: rgba(34, 197, 94, 0.06) !important;
+}
+.table-responsive table tbody tr.table-warning:hover {
+    background-color: rgba(234, 179, 8, 0.14) !important;
+}
+.table-responsive th,
+.table-responsive td {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+.leaderboard-row-top1 {
+    background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), transparent 70%) !important;
+}
+.leaderboard-row-top2 {
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), transparent 70%) !important;
+}
+.leaderboard-row-top3 {
+    background: linear-gradient(90deg, rgba(180, 83, 9, 0.12), transparent 70%) !important;
+}
+
+/* Crazy runner challenge area: scanline-danger aesthetic */
+#gameRunnerModal .bg-gradient-red {
+    background: linear-gradient(135deg, rgba(127,29,29,0.40) 0%, rgba(185,28,28,0.30) 50%, rgba(15,23,42,0.95) 100%) !important;
+    border: 2px solid rgba(248, 113, 113, 0.6) !important;
+    box-shadow: 0 0 40px rgba(220, 38, 38, 0.45),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+}
+#gameRunnerModal .bg-gradient-red::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(220, 38, 38, 0.08) 0px,
+        rgba(220, 38, 38, 0.08) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+    pointer-events: none;
+    opacity: 0.4;
+}
+.font-lg-1 {
+    font-size: 1.08rem !important;
+    line-height: 1.55 !important;
 }

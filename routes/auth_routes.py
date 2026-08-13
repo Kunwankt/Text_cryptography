@@ -48,14 +48,21 @@ def _is_json_request() -> bool:
     Do NOT use ``request.accept_mimetypes.accept_json`` — browsers always send
     ``Accept: */*`` so ``accept_json`` is always True, causing HTML form POSTs
     to be misrouted to JSON responses instead of HTTP redirects.
+
+    Hard rule: if the request carries any ``application/x-www-form-urlencoded``
+    data (i.e. ``request.form`` has keys), it's an HTML form → NEVER JSON.
     """
+    try:
+        if request.form and len(request.form.keys()) > 0:
+            return False
+    except Exception:
+        pass
     try:
         if bool(request.is_json):
             return True
     except Exception:
         pass
-    # Fallback: body actually parses as JSON
-    return request.get_json(silent=True) is not None
+    return False
 
 
 def _touch_session(username: str, role: str) -> None:

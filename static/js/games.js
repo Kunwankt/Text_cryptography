@@ -403,6 +403,219 @@
     } catch (_e) { return 0; }
   }
 
+  // ---------------------------------------------------------------------------
+  // How-to-Play modal — triggered by (i) button on every game card
+  // ---------------------------------------------------------------------------
+  let _htpBootstrapModal = null;
+  let _htpPendingGameId = null;
+  function openHowToPlayModal(gameId) {
+    try {
+      if (!gameId) return;
+      _htpPendingGameId = String(gameId);
+      const INIT = getInit();
+      const catalog = (INIT && Array.isArray(INIT.games)) ? INIT.games : [];
+      const g = catalog.find(x => x && String(x.id) === String(gameId));
+      const rulesEl = document.getElementById("htpRules");
+      const exampleEl = document.getElementById("htpExample");
+      const nameEl = document.getElementById("htpGameName");
+      if (nameEl) nameEl.textContent = (g && g.name) ? String(g.name) : String(gameId);
+      if (rulesEl) {
+        const fallback = (g && g.long_description) ? String(g.long_description) : "No rules available for this game yet.";
+        const rules = (g && g.how_to_play) ? String(g.how_to_play) : fallback;
+        rulesEl.innerHTML = "";
+        rulesEl.textContent = rules;
+      }
+      if (exampleEl) {
+        const ex = (g && g.example) ? String(g.example) : (
+          "Worked example not yet configured for " + String((g && g.name) || gameId) + ".\n" +
+          "Click Play → a fresh challenge will be generated with algorithm badge, hints, and\n" +
+          "automatic scoring. Every correct answer contributes XP and rank progress."
+        );
+        exampleEl.textContent = ex;
+      }
+      // Wire Play Now button
+      const playBtn = document.getElementById("htpPlayNowBtn");
+      if (playBtn) {
+        playBtn.onclick = function htpPlayClick() {
+          try {
+            const diffSel = document.querySelector('.btn-diff-select.active[data-game-id="' + CSS.escape(String(_htpPendingGameId)) + '"]');
+            const dfltDiff = (diffSel && diffSel.dataset && diffSel.dataset.diff) ? String(diffSel.dataset.diff) : "easy";
+            const anyBtn = document.querySelector('.btn-play-game[data-game-id="' + CSS.escape(String(_htpPendingGameId)) + '"]');
+            if (anyBtn) {
+              try { (anyBtn.dataset || (anyBtn.dataset = {})).diff = dfltDiff; } catch (_e) {}
+              anyBtn.click();
+            } else {
+              openRunner(String(_htpPendingGameId), dfltDiff);
+            }
+          } catch (_e) { console.warn("htp play-now failed:", _e); }
+        };
+      }
+      // Open the BS5 modal
+      const modalEl = document.getElementById("howToPlayModal");
+      if (!modalEl) return;
+      try {
+        if (!_htpBootstrapModal || typeof bootstrap === "undefined") {
+          if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
+            _htpBootstrapModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+          } else {
+            modalEl.classList.add("show");
+            modalEl.style.display = "block";
+            return;
+          }
+        }
+        _htpBootstrapModal.show();
+      } catch (_modalErr) { console.warn("htp modal show failed:", _modalErr); }
+    } catch (_outer) { console.warn("openHowToPlayModal failed:", _outer); }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Global Leaderboard — render rows into #leaderboardTbody (PUBLIC, no auth)
+  // ---------------------------------------------------------------------------
+  function _fmtIN(n) {
+    // Indian-notation number formatting (en-IN locale)
+    try {
+      const num = Number(n || 0);
+      if (!isFinite(num)) return String(n || "0");
+      try {
+        if (typeof Intl !== "undefined" && Intl.NumberFormat) {
+          return new Intl.NumberFormat("en-IN").format(num);
+        }
+      } catch (_i) {}
+      return String(Math.round(num));
+    } catch (_e) { return String(n || "0"); }
+  }
+  function _rankBadgeClass(rankName) {
+    const r = String(rankName || "").toLowerCase();
+    if (r.includes("legend") || r.includes("crypto legend") || r.includes("master")) return "warning";
+    if (r.includes("expert") || r.includes("elite")) return "danger";
+    if (r.includes("advance") || r.includes("senior")) return "info";
+    if (r.includes("intermediate") || r.includes("apprentice")) return "primary";
+    return "success";
+  }
+  function renderLeaderboard(rows) {
+    try {
+      const tbody = document.getElementById("leaderboardTbody");
+      if (!tbody) return;
+      const list = (Array.isArray(rows) ? rows.slice() : []).filter(Boolean);
+      if (list.length === 0) {
+        tbody.innerHTML =
+          '<tr><td colspan="7" class="text-center py-4 text-light opacity-60">' +
+          '<i class="fas fa-circle-info me-2"></i>No leaderboard data yet. ' +
+          'Play a round to appear at the top!</td></tr>';
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      list.forEach(function (row, idx) {
+        const tr = document.createElement("tr");
+        const rankNum = idx + 1;
+        const isLocal = String(row.source || "").toLowerCase() === "local";
+        // Row styling
+        if (isLocal) tr.className = "table-warning";
+        if (rankNum === 1) tr.classList.add("leaderboard-row-top1");
+        else if (rankNum === 2) tr.classList.add("leaderboard-row-top2");
+        else if (rankNum === 3) tr.classList.add("leaderboard-row-top3");
+
+        // Col 1: rank number
+        const tdRank = document.createElement("td");
+        tdRank.className = "text-center px-3 py-3";
+        const medal = (rankNum <= 3)
+          ? ({ 1: "🥇", 2: "🥈", 3: "🥉" })[rankNum]
+          : ("<span class=\"font-monospace text-light opacity-60\">#" + rankNum + "</span>");
+        tdRank.innerHTML = medal;
+        tr.appendChild(tdRank);
+
+        // Col 2: player
+        const tdName = document.createElement("td");
+        tdName.className = "px-3 py-3";
+        const adminBadge = (row.is_admin)
+          ? ' <span class="badge bg-danger-subtle text-danger-emphasis border border-danger rounded-pill ms-1" style="font-size:0.6rem;">ADMIN</span>' : "";
+        const localBadge = isLocal
+          ? ' <span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill ms-1" style="font-size:0.6rem;">THIS DEVICE</span>' : "";
+        tdName.innerHTML = "<b class=\"text-white\">" + (String(row.display_name || "Anonymous").replace(/[<>]/g, "")) + "</b>" +
+          (row.username ? '<br><small class="font-monospace text-light opacity-50">@' + String(row.username).replace(/[<>]/g, "") + "</small>" : "") +
+          adminBadge + localBadge;
+        tr.appendChild(tdName);
+
+        // Col 3: rank badge
+        const tdRk = document.createElement("td");
+        tdRk.className = "px-3 py-3";
+        const cls = _rankBadgeClass(row.rank);
+        tdRk.innerHTML = '<span class="badge bg-' + cls + '-subtle border border-' + cls + ' text-' + cls + '-emphasis rounded-pill">' +
+          String(row.rank || "Novice") + "</span>";
+        tr.appendChild(tdRk);
+
+        // Col 4: XP (right aligned, Indian formatting)
+        const tdXP = document.createElement("td");
+        tdXP.className = "text-end px-3 py-3";
+        tdXP.innerHTML = "<b class=\"text-success font-monospace\">" + _fmtIN(row.xp || 0) + "</b>";
+        tr.appendChild(tdXP);
+
+        // Col 5: Wins (center)
+        const tdWins = document.createElement("td");
+        tdWins.className = "text-center px-3 py-3";
+        tdWins.innerHTML = "<span class=\"font-monospace text-info\">" + _fmtIN(row.wins || 0) + "</span>";
+        tr.appendChild(tdWins);
+
+        // Col 6: Streak (center, flame color scale)
+        const tdSt = document.createElement("td");
+        tdSt.className = "text-center px-3 py-3";
+        const stNum = Number(row.streak || 0);
+        const stColor = stNum >= 7 ? "danger" : (stNum >= 3 ? "warning" : "primary");
+        tdSt.innerHTML = '<span class="font-monospace text-' + stColor + '">' + _fmtIN(stNum) + "</span>";
+        tr.appendChild(tdSt);
+
+        // Col 7: Crazy best (center, danger if >0)
+        const tdCM = document.createElement("td");
+        tdCM.className = "text-center px-3 py-3";
+        const cmNum = Number(row.crazy_best || 0);
+        if (cmNum <= 0) {
+          tdCM.innerHTML = '<span class="text-light opacity-30 small">—</span>';
+        } else {
+          tdCM.innerHTML =
+            '<span class="badge bg-danger-subtle border border-danger text-danger-emphasis rounded-pill font-monospace" title="Crazy Mode Best Score">' +
+            "☠️ " + _fmtIN(cmNum) + "</span>";
+        }
+        tr.appendChild(tdCM);
+
+        frag.appendChild(tr);
+      });
+      tbody.innerHTML = "";
+      tbody.appendChild(frag);
+    } catch (_outer) { console.warn("renderLeaderboard failed:", _outer); }
+  }
+  async function refreshLeaderboard() {
+    try {
+      const tbody = document.getElementById("leaderboardTbody");
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-light opacity-60"><i class="fas fa-sync-alt fa-spin me-2"></i>Refreshing…</td></tr>';
+      }
+      const r = await fetch("/api/games/leaderboard?limit=20", { credentials: "same-origin" });
+      const data = await r.json().catch(function () { return null; });
+      if (data && data.success && Array.isArray(data.leaderboard)) {
+        renderLeaderboard(data.leaderboard);
+      } else if (data && !data.success) {
+        throw new Error(data.error || "Leaderboard fetch failed");
+      } else {
+        // Fallback: use __GAMES_INITIAL.leaderboard if server fetch failed
+        const INIT = getInit();
+        if (INIT && Array.isArray(INIT.leaderboard)) renderLeaderboard(INIT.leaderboard);
+        else throw new Error("Invalid leaderboard response");
+      }
+    } catch (_e) {
+      // Last-ditch fallback: use initial SSR leaderboard
+      try {
+        const INIT = getInit();
+        if (INIT && Array.isArray(INIT.leaderboard)) renderLeaderboard(INIT.leaderboard);
+        else {
+          const tbody = document.getElementById("leaderboardTbody");
+          if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-light opacity-60"><i class="fas fa-triangle-exclamation me-2 text-warning"></i>' +
+            'Could not load leaderboard: ' + String(_e.message || _e).replace(/[<>]/g, "") + "</td></tr>";
+        }
+      } catch (_f) {}
+      console.warn("refreshLeaderboard failed:", _e);
+    }
+  }
+
   function pushServerStats(patch) {
     try {
       if (!patch || typeof patch !== "object") return;
@@ -839,9 +1052,41 @@
       if (!ctx) return;
       if (ctx.state === "suspended") try { ctx.resume(); } catch (_e) {}
       var now = ctx.currentTime;
-      var dur = 3.5;
+      var dur = 3.6;
 
-      // 1) Siren / dissonant scream oscillator
+      // =============================================================
+      // INDIAN HORROR LAYER — bansuri, dholak dread, ghungroo dread
+      // =============================================================
+
+      // 1) BANSURI (bamboo flute) dissonant eerie wails (double-layered)
+      for (var bans = 0; bans < 2; bans++) {
+        (function (idx) {
+          var b = ctx.createOscillator();
+          var bg = ctx.createGain();
+          var bf = ctx.createBiquadFilter();
+          bf.type = "bandpass"; bf.frequency.value = 1400 + idx * 200; bf.Q.value = 7;
+          b.type = "sine";  // clean bansuri base with vibrato
+          b.frequency.setValueAtTime(260 + idx * 80, now);
+          b.frequency.exponentialRampToValueAtTime(900 + idx * 120, now + 0.8);
+          b.frequency.exponentialRampToValueAtTime(140 + idx * 50, now + dur);
+          // bansuri 3.5-5 Hz slow wobble = eerie
+          try {
+            var vib = ctx.createOscillator();
+            var vg = ctx.createGain();
+            vib.frequency.value = 3.5 + idx * 1.5;
+            vg.gain.value = 18;
+            vib.connect(vg); vg.connect(b.frequency);
+            vib.start(now); vib.stop(now + dur);
+          } catch (_v) {}
+          bg.gain.setValueAtTime(0.0001, now);
+          bg.gain.exponentialRampToValueAtTime(0.22 / (idx + 1), now + 0.08);
+          bg.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+          b.connect(bf); bf.connect(bg); bg.connect(ctx.destination);
+          b.start(now); b.stop(now + dur + 0.05);
+        })(bans);
+      }
+
+      // 2) Siren / dissonant scream oscillator trio
       for (var i = 0; i < 3; i++) {
         (function (idx) {
           var o = ctx.createOscillator();
@@ -861,9 +1106,52 @@
         })(i);
       }
 
-      // 2) Static noise burst (hissing horror)
+      // 3) DHOLAK / DAMARU deep dread thuds (matra-style accents at 5 points)
       try {
-        var bufferSize = ctx.sampleRate * dur;
+        var dholPats = [0.0, 0.55, 1.2, 2.0, 2.75];
+        for (var dp = 0; dp < dholPats.length; dp++) {
+          (function (dIdx) {
+            var t = now + dholPats[dIdx];
+            var drum = ctx.createOscillator();
+            var dg = ctx.createGain();
+            var dFilt = ctx.createBiquadFilter();
+            dFilt.type = "lowpass"; dFilt.frequency.value = 420; dFilt.Q.value = 2;
+            drum.type = "sine";
+            drum.frequency.setValueAtTime(140, t);
+            drum.frequency.exponentialRampToValueAtTime(48, t + 0.18);
+            dg.gain.setValueAtTime(0.0001, t);
+            dg.gain.exponentialRampToValueAtTime(dIdx === 0 ? 0.85 : 0.55, t + 0.008);
+            dg.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+            drum.connect(dFilt); dFilt.connect(dg); dg.connect(ctx.destination);
+            drum.start(t); drum.stop(t + 0.25);
+          })(dp);
+        }
+      } catch (_dholErr) {}
+
+      // 4) GHUNGROO (anklet bells) horror jingle cluster (high freq metal dread)
+      try {
+        var bellBufferSize = Math.floor(ctx.sampleRate * 1.8);
+        var bellBuf = ctx.createBuffer(1, bellBufferSize, ctx.sampleRate);
+        var bellData = bellBuf.getChannelData(0);
+        for (var bj = 0; bj < bellBufferSize; bj++) {
+          var env = Math.max(0, 1 - bj / bellBufferSize);
+          var ping = (Math.random() < 0.012) ? ((Math.random() * 2 - 1) * 0.9) : 0;
+          bellData[bj] = ping * env;
+        }
+        var bellSrc = ctx.createBufferSource();
+        bellSrc.buffer = bellBuf;
+        var bellGain = ctx.createGain();
+        bellGain.gain.setValueAtTime(0.35, now + 0.1);
+        bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.9);
+        var bellFilt = ctx.createBiquadFilter();
+        bellFilt.type = "highpass"; bellFilt.frequency.value = 4000;
+        bellSrc.connect(bellFilt); bellFilt.connect(bellGain); bellGain.connect(ctx.destination);
+        bellSrc.start(now + 0.08); bellSrc.stop(now + 2.0);
+      } catch (_ghung) {}
+
+      // 5) Static noise burst (hissing horror)
+      try {
+        var bufferSize = Math.floor(ctx.sampleRate * dur);
         var noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         var data = noiseBuffer.getChannelData(0);
         for (var j = 0; j < bufferSize; j++) {
@@ -881,7 +1169,7 @@
         noise.stop(now + dur);
       } catch (_e1) {}
 
-      // 3) Deep sub-bass crash thump
+      // 6) Deep sub-bass crash thump
       try {
         var bass = ctx.createOscillator();
         var bg = ctx.createGain();
@@ -895,7 +1183,7 @@
         bass.start(now); bass.stop(now + 2.6);
       } catch (_e2) {}
 
-      // 4) Periodic clang every 0.6s
+      // 7) Periodic clang every 0.6s
       try {
         for (var k = 0; k < 5; k++) {
           var t0 = now + k * 0.6;
@@ -919,7 +1207,117 @@
       if (ctx.state === "suspended") try { ctx.resume(); } catch (_e) {}
       var now = ctx.currentTime;
 
-      // Trumpet fanfare notes (C5 → E5 → G5 → C6 triumphant)
+      // =============================================================
+      // INDIAN CELEBRATION LAYER — shehnai, tabla bols, manjira, nagada
+      // =============================================================
+
+      // 1) SHEHNAI (double-reed wedding blessing) — raga Yaman style phrase
+      //    Ni-Re-Ga-Ma#-Pa-Dha-Ni-Sa'  (raga Yaman Ni = N4, Re = R2, Ga=G2, Ma=MA, Pa=P, Dha=D2, Ni=N4)
+      var shehnaiNotes = [
+        // Opening blessing: Ni Dha Ni Sa' (slow)
+        { f: 493.88, t: 0.0,  d: 0.25, g: 0.28 },  // Ni4  B4
+        { f: 587.33, t: 0.28, d: 0.22, g: 0.28 },  // Re5  D5
+        { f: 659.25, t: 0.52, d: 0.22, g: 0.30 },  // Ga5  E5
+        { f: 740.00, t: 0.76, d: 0.25, g: 0.32 },  // Ma#5 F#5 (teevra ma — Yaman signature)
+        // Climax climb to high Sa'
+        { f: 659.25, t: 1.05, d: 0.18, g: 0.34 },  // Ga
+        { f: 740.00, t: 1.25, d: 0.18, g: 0.36 },  // Ma#
+        { f: 783.99, t: 1.45, d: 0.22, g: 0.38 },  // Pa5  G5
+        { f: 880.00, t: 1.69, d: 0.25, g: 0.40 },  // Dha5 A5
+        { f: 987.77, t: 1.96, d: 0.3,  g: 0.42 },  // Ni5  B5
+        { f: 1046.50,t: 2.28, d: 0.9,  g: 0.52 },  // Sa'6 C6 — BIG FINAL BLESSING HOLD
+      ];
+      shehnaiNotes.forEach(function (n) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        var f = ctx.createBiquadFilter();
+        // shehnai: bandpass + soft clipping for double-reed timbre
+        f.type = "bandpass"; f.frequency.value = 1750; f.Q.value = 4.5;
+        o.type = "sawtooth";  // rich harmonics for shehnai sound
+        o.frequency.setValueAtTime(n.f, now + n.t);
+        // 7.5 Hz fast vibrato (characteristic shehnai wobble)
+        try {
+          var sc = ctx.createOscillator();
+          var sg = ctx.createGain();
+          sc.frequency.value = 7.5;
+          sg.gain.value = n.f * 0.022;
+          sc.connect(sg); sg.connect(o.frequency);
+          sc.start(now + n.t); sc.stop(now + n.t + n.d);
+        } catch (_v2) {}
+        g.gain.setValueAtTime(0.0001, now + n.t);
+        g.gain.exponentialRampToValueAtTime(n.g, now + n.t + 0.035);  // tongued attack
+        g.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+        o.connect(f); f.connect(g); g.connect(ctx.destination);
+        o.start(now + n.t); o.stop(now + n.t + 0.02);
+      });
+
+      // 2) TABLA BOLS — tintal-style 8-matra theka pattern (21 bols)
+      //    Na = treble (dayan), Ta = mid, Tin = closed treble, Dha = bass (bayan)+treble
+      var TABLA_PATS = [
+        {t:0.08,g:0.55,f:380,dur:0.06,type:"Na"},
+        {t:0.20,g:0.45,f:320,dur:0.05,type:"Tin"},
+        {t:0.32,g:0.70,f:120,dur:0.08,type:"Dha"},
+        {t:0.46,g:0.50,f:360,dur:0.05,type:"Na"},
+        {t:0.58,g:0.45,f:290,dur:0.05,type:"Ta"},
+        {t:0.70,g:0.75,f:110,dur:0.09,type:"Dha"},
+        {t:0.84,g:0.55,f:370,dur:0.05,type:"Na"},
+        {t:0.96,g:0.50,f:310,dur:0.05,type:"Tin"},
+        {t:1.08,g:0.70,f:120,dur:0.08,type:"Dha"},
+        {t:1.22,g:0.55,f:360,dur:0.05,type:"Na"},
+        {t:1.34,g:0.85,f:105,dur:0.10,type:"Dha"},
+        {t:1.50,g:0.75,f:115,dur:0.09,type:"Dha"},
+        // Sam (1st beat return — BIG emphasis)
+        {t:1.68,g:0.90,f:100,dur:0.12,type:"Dha"},
+        {t:1.88,g:0.60,f:380,dur:0.06,type:"Na"},
+        {t:2.00,g:0.55,f:320,dur:0.05,type:"Tin"},
+        {t:2.12,g:0.85,f:110,dur:0.10,type:"Dha"},
+        // Celebration fast dhir-dhir run
+        {t:2.30,g:0.50,f:340,dur:0.04,type:"Na"},
+        {t:2.38,g:0.45,f:300,dur:0.04,type:"Tin"},
+        {t:2.46,g:0.50,f:340,dur:0.04,type:"Na"},
+        {t:2.54,g:0.45,f:300,dur:0.04,type:"Tin"},
+        {t:2.62,g:0.55,f:340,dur:0.04,type:"Na"},
+        {t:2.70,g:0.50,f:300,dur:0.04,type:"Tin"},
+      ];
+      try {
+        TABLA_PATS.forEach(function (bp) {
+          var to = ctx.createOscillator();
+          var tg = ctx.createGain();
+          var tf = ctx.createBiquadFilter();
+          var startT = now + bp.t;
+          tf.type = (bp.type === "Dha") ? "lowpass" : "bandpass";
+          tf.frequency.value = (bp.type === "Dha") ? 650 : 1400;
+          tf.Q.value = (bp.type === "Dha") ? 1.8 : 6;
+          to.type = (bp.type === "Dha") ? "sine" : "triangle";
+          to.frequency.setValueAtTime(bp.f, startT);
+          to.frequency.exponentialRampToValueAtTime(bp.f * (bp.type === "Dha" ? 0.45 : 0.75), startT + bp.dur);
+          tg.gain.setValueAtTime(0.0001, startT);
+          tg.gain.exponentialRampToValueAtTime(bp.g, startT + 0.004);
+          tg.gain.exponentialRampToValueAtTime(0.0001, startT + bp.dur);
+          to.connect(tf); tf.connect(tg); tg.connect(ctx.destination);
+          to.start(startT); to.stop(startT + bp.dur + 0.01);
+        });
+      } catch (_tabla) {}
+
+      // 3) MANJIRA (tiny hand-cymbals) tinkle accents at 6 points
+      try {
+        var manjTs = [0.08, 0.58, 1.08, 1.68, 2.12, 2.62];
+        manjTs.forEach(function (mt) {
+          var mj = ctx.createOscillator();
+          var mg = ctx.createGain();
+          var mf = ctx.createBiquadFilter();
+          mf.type = "highpass"; mf.frequency.value = 6000; mf.Q.value = 3;
+          mj.type = "triangle";
+          mj.frequency.setValueAtTime(6600 + Math.random() * 1200, now + mt);
+          mg.gain.setValueAtTime(0.0001, now + mt);
+          mg.gain.exponentialRampToValueAtTime(0.18, now + mt + 0.003);
+          mg.gain.exponentialRampToValueAtTime(0.0001, now + mt + 0.08);
+          mj.connect(mf); mf.connect(mg); mg.connect(ctx.destination);
+          mj.start(now + mt); mj.stop(now + mt + 0.1);
+        });
+      } catch (_manj) {}
+
+      // 4) Trumpet fanfare layer (C5 → E5 → G5 → C6 triumphant)
       var notes = [
         { f: 523.25, t: 0.0,  d: 0.25, g: 0.35 }, // C5
         { f: 659.25, t: 0.3,  d: 0.25, g: 0.35 }, // E5
@@ -938,7 +1336,7 @@
         g.gain.setValueAtTime(0.0001, now + n.t);
         g.gain.exponentialRampToValueAtTime(n.g, now + n.t + 0.03);
         g.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
-        // Gentle vibrato for "brass" feel
+        // Brass vibrato
         try {
           var lfo = ctx.createOscillator();
           var lfoGain = ctx.createGain();
@@ -951,7 +1349,7 @@
         o.start(now + n.t); o.stop(now + n.t + 0.02);
       });
 
-      // Timpani thump on fanfare start
+      // 5) Timpani thump on fanfare start
       try {
         var timp = ctx.createOscillator();
         var tg = ctx.createGain();
@@ -964,14 +1362,14 @@
         timp.start(now); timp.stop(now + 0.55);
       } catch (_e) {}
 
-      // Sparkle high synths on top
+      // 6) Sparkle high synths on top (18 sparkles)
       try {
-        for (var s = 0; s < 12; s++) {
-          var st = now + 0.2 + s * 0.12;
+        for (var s = 0; s < 18; s++) {
+          var st = now + 0.2 + s * 0.11;
           var so = ctx.createOscillator();
           var sg = ctx.createGain();
           so.type = "sine";
-          so.frequency.value = 1500 + Math.random() * 2500;
+          so.frequency.value = 1600 + Math.random() * 3500;
           sg.gain.setValueAtTime(0.0001, st);
           sg.gain.exponentialRampToValueAtTime(0.08, st + 0.01);
           sg.gain.exponentialRampToValueAtTime(0.0001, st + 0.2);
@@ -979,6 +1377,31 @@
           so.start(st); so.stop(st + 0.22);
         }
       } catch (_e) {}
+
+      // 7) NAGADA DHOLKI drum-roll crescendo (28 accelerating rolls to climax)
+      try {
+        var rollEnd = now + 3.0;
+        var rollStart = now + 2.20;
+        var steps = 28;
+        for (var ri = 0; ri < steps; ri++) {
+          (function (rIdx) {
+            var frac = rIdx / Math.max(1, steps - 1);
+            var rt = rollStart + frac * (rollEnd - rollStart);
+            var ro = ctx.createOscillator();
+            var rg = ctx.createGain();
+            var rFilt = ctx.createBiquadFilter();
+            rFilt.type = "bandpass"; rFilt.frequency.value = 780; rFilt.Q.value = 1.5;
+            ro.type = "triangle";
+            ro.frequency.setValueAtTime(260 - 80 * frac, rt);
+            ro.frequency.exponentialRampToValueAtTime(150 - 40 * frac, rt + 0.03);
+            rg.gain.setValueAtTime(0.0001, rt);
+            rg.gain.exponentialRampToValueAtTime(0.22 + 0.42 * frac, rt + 0.003);
+            rg.gain.exponentialRampToValueAtTime(0.0001, rt + 0.035);
+            ro.connect(rFilt); rFilt.connect(rg); rg.connect(ctx.destination);
+            ro.start(rt); ro.stop(rt + 0.04);
+          })(ri);
+        }
+      } catch (_nagada) {}
     } catch (_outer) { console.warn("trumpet victory audio failed", _outer); }
   }
   function crazyTriggerCrashVisual() {
@@ -1877,6 +2300,12 @@
     try { paintBestScores(); } catch (e2) { console.warn("paintBestScores threw:", e2); }
     try { wireDifficultyAndPlayButtons(); } catch (e3) { console.warn("wireDifficulty... threw:", e3); }
     try { wireRunnerFooterButtons(); } catch (e4) { console.warn("wireRunnerFooter... threw:", e4); }
+    /* ---------- PUBLIC LEADERBOARD: SSR paint first, then async refresh via API ---------- */
+    try {
+      const INIT = getInit();
+      if (INIT && Array.isArray(INIT.leaderboard)) try { renderLeaderboard(INIT.leaderboard); } catch (_e) { console.warn(_e); }
+      try { setTimeout(function () { try { if (typeof refreshLeaderboard === "function") refreshLeaderboard(); } catch (_la) { console.warn(_la); } }, 450); } catch (_la) {}
+    } catch (_leaderboardInitErr) { console.warn("leaderboard init failed:", _leaderboardInitErr); }
     try { setTimeout(function () { try { wireDelegatedEvents(); } catch (_e) {} try { wireDifficultyAndPlayButtons(); } catch (_e) {} try { wireRunnerFooterButtons(); } catch (_e) {} }, 300); } catch (_e) {}
     try { setTimeout(function () { try { bootStats(); } catch (_e) {} try { paintBestScores(); } catch (_e) {} try { wireDifficultyAndPlayButtons(); } catch (_e) {} }, 1000); } catch (_e) {}
     try { setTimeout(function () { try { bootStats(); } catch (_e) {} }, 2000); } catch (_e) {}

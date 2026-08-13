@@ -1026,3 +1026,61 @@ button.stat-performance:hover .stat-card { border-color: rgba(59,130,246,0.55) !
     .btn:hover { transform: none; }
     .clickable:hover { transform: none; }
 }
+
+/* ============================================================
+   NO-HOVER-UNDERLINES — branding, cards, nav, audit log ops
+   Engineering convention: remove hover underlines from
+   interactive elements where underline is redundant/ugly.
+   ============================================================ */
+a.navbar-brand.cyber-brand,
+a.navbar-brand.cyber-brand:hover,
+a.navbar-brand.cyber-brand:visited,
+a.navbar-brand.cyber-brand:focus,
+.cyber-navbar .navbar-brand,
+.cyber-navbar .navbar-brand:hover {
+    text-decoration: none !important;
+}
+
+.cyber-navbar .nav-link,
+.cyber-navbar .nav-link:hover,
+.cyber-navbar .nav-link:focus,
+.cyber-navbar .nav-link:visited {
+    text-decoration: none !important;
+}
+
+.stat-card-link,
+.stat-card-link:hover,
+.stat-card-link:focus,
+.stat-card-link:visited {
+    text-decoration: none !important;
+}
+
+.quick-tool-link,
+.quick-tool-link:hover,
+.quick-tool-link:focus,
+.quick-tool-link:visited {
+    text-decoration: none !important;
+}
+
+/* Audit log: operation column — no underlines */
+.table.table-dark td.operation-cell,
+.table.table-dark td.operation-cell:hover,
+.table.table-dark td.operation-cell a,
+.table.table-dark td.operation-cell a:hover {
+    text-decoration: none !important;
+}
+
+/* Brand name inside navbar — no hover underline ever */
+.brand-name:hover,
+.cyber-brand:hover .brand-name,
+.cyber-brand .brand-name:hover {
+    text-decoration: none !important;
+}
+
+/* Footer "encryptsys" root@ style branding — no underline */
+.cyber-footer a,
+.cyber-footer a:hover,
+.cyber-footer a:focus,
+.cyber-footer a:visited {
+    text-decoration: none !important;
+}

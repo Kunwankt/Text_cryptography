@@ -723,10 +723,27 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Crack the Cipher",
         "icon": "fa-key",
         "color": "success",
-        "short_description": "Decrypt ciphertexts produced by Caesar, Atbash, Vigenère, and more.",
-        "long_description": (
-            "Given a ciphertext (and sometimes a hint), type the original plaintext. "
-            "Supports Caesar shift, Atbash mirror, Vigenère keyword, and monoalphabetic substitution."
+        "short_description": "Decrypt ciphertexts — Caesar, Atbash, Vigenère, Substitution.",
+        "long_description": "Recover plaintext from ciphertext using classic schemes + hints.",
+        "how_to_play": (
+            "1. Read the SCHEME from the algorithm badge above the challenge.\n"
+            "2. Inspect ciphertext and apply the decryption rule for that cipher.\n"
+            "3. Use HINTS (score penalty) if stuck — reveals letter info/key clues.\n"
+            "4. Type recovered plaintext and SUBMIT.\n"
+            "5. Answer correctly before timer/lives run out → earn XP.\n\n"
+            "Schemes:\n"
+            "  • Caesar   : alphabet shifted by N letters (e.g. +3 = A→D)\n"
+            "  • Atbash   : mirror cipher — A↔Z, B↔Y, C↔X, …\n"
+            "  • Vigenère : Caesar shift varies by position using a keyword\n"
+            "  • Substitution : random letter-for-letter permutation"
+        ),
+        "example": (
+            "Challenge (Caesar shift +3):\n"
+            "  Ciphertext:  KHOOR ZRUOG\n"
+            "  Shift each letter back by 3:\n"
+            "    K→H, H→E, O→L, O→L, R→O  →  HELLO\n"
+            "    Z→W, R→O, U→R, O→L, G→D  →  WORLD\n"
+            "  Correct answer:  HELLO WORLD"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "30 – 140 XP",
@@ -739,9 +756,25 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Guess the Cipher",
         "icon": "fa-circle-question",
         "color": "info",
-        "short_description": "Show ciphertext — pick which cipher produced it.",
-        "long_description": (
-            "Four cipher options are shown. Pick the one that produced the given ciphertext."
+        "short_description": "Identify which cipher produced a given ciphertext (MCQ).",
+        "long_description": "Pattern recognition drill — pick correct cipher from 4 options.",
+        "how_to_play": (
+            "1. Shown a ciphertext only — no hint about the scheme.\n"
+            "2. Study patterns to identify the cipher family.\n"
+            "3. Click correct cipher in the MCQ.\n"
+            "4. Wrong picks cost a life.\n\n"
+            "Visual clues:\n"
+            "  • Caesar      : word shapes preserved, language intact — just shifted\n"
+            "  • Atbash      : looks like Caesar but mirror-symmetric\n"
+            "  • Vigenère    : longer words, periodic structure if keyword repeats\n"
+            "  • Substitution: scrambled letter frequencies, no obvious word shapes"
+        ),
+        "example": (
+            "Ciphertext: QEB NRFZH YOLTK CLU GRJMP LSBO QEB IXWV ALD\n\n"
+            "Clue: every word length matches plain English.\n"
+            "'QEB' appears twice → very common pattern matches 'THE'.\n"
+            "If Q→T then shift = +3 → classic Caesar cipher.\n\n"
+            "Correct answer: Caesar"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "20 – 80 XP",
@@ -754,10 +787,22 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Brute Force Challenge",
         "icon": "fa-bomb",
         "color": "danger",
-        "short_description": "Demo weak passwords — guess the target within limited attempts.",
-        "long_description": (
-            "Purely educational: a very short weak demo password is chosen with generous hints. "
-            "Watch how fast guesses cut the search space down."
+        "short_description": "Guess weak demo passwords with per-character green/red feedback.",
+        "long_description": "Educational demo — crack short weak passwords with hints.",
+        "how_to_play": (
+            "1. A weak demo password chosen from a very small search space.\n"
+            "2. You see its LENGTH + CHARACTER SPACE (digits only, lowercase+digit, …).\n"
+            "3. Type guesses and submit.\n"
+            "4. Each guess shows correct-position letters GREEN, wrong RED.\n"
+            "5. Find the password before attempts/lives run out.\n\n"
+            "⚠️ Educational only — real 8+ char brute force needs GPUs."
+        ),
+        "example": (
+            "Target length: 6, char space: lowercase + single digit at end\n\n"
+            "Attempt #1: monkey5  →  m⚠️  o⚠️  n✅  k✅  e✅  y✅  5✅\n"
+            "  → last 5 chars (n,k,e,y,5) confirmed correct positions.\n"
+            "Attempt #2: jockey5  →  all GREEN → CORRECT.\n\n"
+            "Correct answer: jockey5"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "25 – 110 XP",
@@ -770,9 +815,24 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Cipher Puzzle",
         "icon": "fa-puzzle-piece",
         "color": "warning",
-        "short_description": "Solve a cipher with clues — like a cryptographic mini-mystery.",
-        "long_description": (
-            "You receive encrypted text plus narrative clues. Identify the scheme, then decrypt."
+        "short_description": "Crypto mini-mystery — clues + ciphertext → solve it.",
+        "long_description": "Deduce the scheme + decrypt using narrative clues.",
+        "how_to_play": (
+            "1. Read the 3 narrative CLUES above the ciphertext.\n"
+            "2. Use clues to deduce which cipher is used.\n"
+            "3. Apply correct decryption.\n"
+            "4. Use hints for progressively more key information.\n"
+            "5. Type plaintext before time/lives expire."
+        ),
+        "example": (
+            "Clues:\n"
+            "  1. Original plaintext starts with 'S'.\n"
+            "  2. Uses the CAESAR scheme.\n"
+            "  3. Plaintext length: 6 letters.\n\n"
+            "Ciphertext: YKYZNK\n"
+            "First letter Y → S means shift = +6 (S+6=Y).\n"
+            "Decrypt each: Y-6=S, K-6=E, Y-6=S, Z-6=T, N-6=H, K-6=E\n\n"
+            "Correct answer: SECRET"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "35 – 140 XP",
@@ -785,9 +845,28 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Key Guessing",
         "icon": "fa-key-skeleton",
         "color": "primary",
-        "short_description": "Factor demo tiny RSA moduli — why weak keys break everything.",
-        "long_description": (
-            "Uses toy 4–8-bit RSA moduli to teach the principle: once n factors, the private key is known."
+        "short_description": "Factor toy RSA moduli — why weak keys destroy security.",
+        "long_description": "RSA factoring demo with 4-8 bit toy keys.",
+        "how_to_play": (
+            "1. Given a tiny RSA public key: (n, e).\n"
+            "2. Goal #1: find ONE prime factor of n (p or q).\n"
+            "3. Goal #2 [bonus +20% XP]: also compute plaintext integer.\n"
+            "4. Hint about sqrt(n) provided — try small primes manually.\n"
+            "5. Submit factor before attempts/lives run out.\n\n"
+            "Why this matters: Real RSA-2048 uses ~617-digit primes.\n"
+            "Toy n=187 is trivial → factoring = GAME OVER for security."
+        ),
+        "example": (
+            "Public key:  n=187, e=7\n"
+            "Ciphertext:  c = 175  = plaintext^7 mod 187\n\n"
+            "Step 1: Factor 187 — try small primes:\n"
+            "  187 / 2  = 93.5   ❌\n"
+            "  187 / 3 ≈ 62.33  ❌\n"
+            "  187 / 5  = 37.4   ❌\n"
+            "  187 / 11 = 17     ✅  →  factor = 11\n\n"
+            "Step 2 [bonus]: p=11, q=17 → φ=(p-1)(q-1)=160 → d=7⁻¹ mod 160 = 23\n"
+            "  plaintext = 175^23 mod 187 = 23\n\n"
+            "Correct answer: 11"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "40 – 160 XP",
@@ -800,9 +879,26 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Hash Detective",
         "icon": "fa-magnifying-glass",
         "color": "secondary",
-        "short_description": "Identify MD5 / SHA-1 / SHA-256 hashes and crack a few known preimages.",
-        "long_description": (
-            "Two-parter: pick the correct hash algorithm, then identify the weak password preimage from a tiny rainbow table."
+        "short_description": "Identify hash type, then crack weak preimages (two-stage drill).",
+        "long_description": "Two-stage: algo-ID + rainbow table lookup.",
+        "how_to_play": (
+            "Stage 1 — Identify the algorithm:\n"
+            "  Count hex chars:\n"
+            "  • 32 hex   → MD5\n"
+            "  • 40 hex   → SHA-1\n"
+            "  • 64 hex   → SHA-256\n"
+            "  • 128 hex  → SHA-512\n\n"
+            "Stage 2 — Crack the preimage:\n"
+            "  Tiny educational rainbow table stored locally.\n"
+            "  Guess the common weak password.\n\n"
+            "Both stages correct → full XP. Stage 1 only → half XP."
+        ),
+        "example": (
+            "Hash shown: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8\n\n"
+            "Stage 1: count hex = 64 chars → SHA-256.\n"
+            "Stage 2: lookup common preimages with that SHA-256 → it's 'password'.\n\n"
+            "Stage 1 answer: SHA-256\n"
+            "Stage 2 answer: password"
         ),
         "difficulties": ["Easy", "Medium", "Hard"],
         "xp_range": "30 – 120 XP",
@@ -815,9 +911,24 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Encryption Race",
         "icon": "fa-gauge-high",
         "color": "success",
-        "short_description": "Predict which algorithm is faster — then see the benchmark result.",
-        "long_description": (
-            "Pick A or B. Win XP for correctly guessing the faster algorithm for a chosen payload size."
+        "short_description": "Predict which algorithm encrypts faster — order-of-magnitude drill.",
+        "long_description": "Symmetric vs asymmetric / fast vs slow hash speed comparison.",
+        "how_to_play": (
+            "1. Two candidates shown (e.g. AES-256-GCM vs RSA-2048).\n"
+            "2. Click whichever one you predict encrypts/signs faster for payload size.\n"
+            "3. Correct → 50 XP. Wrong → no XP, no lives cost.\n\n"
+            "Rules of thumb:\n"
+            "  • Symmetric (AES, ChaCha20) ~100x faster than asymmetric (RSA)\n"
+            "  • MD5 slightly faster than SHA-256 >> bcrypt\n"
+            "  • ChaCha20 typically beats 3DES and older ciphers"
+        ),
+        "example": (
+            "Payload: 1024 bytes\n"
+            "A) AES-256-GCM     B) RSA-2048\n\n"
+            "Reasoning: RSA-2048 op = 2048-bit modular exponentiation.\n"
+            "AES-GCM per-block = round of substitution-permutation + GHASH MAC.\n"
+            "Rough ratio: AES ~ 1 cycle/byte, RSA-2048 ~ 10,000+ cycles/op.\n\n"
+            "Correct answer: A) AES-256-GCM"
         ),
         "difficulties": ["Single"],
         "xp_range": "50 XP",
@@ -830,9 +941,27 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Find the Vulnerability",
         "icon": "fa-shield-halved",
         "color": "danger",
-        "short_description": "Spot the crypto flaw in realistic Python snippets.",
-        "long_description": (
-            "Hardcoded keys, MD5 passwords, weak PRNGs, ECB mode, tiny RSA keys — one option is correct."
+        "short_description": "Spot the crypto flaw in realistic Python code snippets.",
+        "long_description": "Code review drill — pick correct technical flaw description.",
+        "how_to_play": (
+            "1. Realistic Python snippet shown with crypto/security flaw.\n"
+            "2. Severity badge + CWE ID shown for context.\n"
+            "3. Read all 4 options. Only 1 describes the intended flaw.\n"
+            "4. Plausible distractors describe adjacent issues (wrong ECB/padding focus).\n"
+            "5. Correct → 70 XP. Wrong → -1 life."
+        ),
+        "example": (
+            "Code snippet:\n"
+            "  import hashlib, sqlite3\n"
+            "  def register_user(username, password):\n"
+            "      pw_hash = hashlib.md5(password.encode()).hexdigest()\n"
+            "      db.execute('INSERT INTO users VALUES (?, ?)', (username, pw_hash))\n\n"
+            "Options:\n"
+            "  A) username should also be hashed\n"
+            "  B) Raw MD5 is fast & unsalted — rainbow tables crack 10M common passwords in seconds\n"
+            "  C) SQLite is not safe for user stores\n"
+            "  D) Missing newline before return\n\n"
+            "Correct answer: B"
         ),
         "difficulties": ["Single"],
         "xp_range": "70 XP",
@@ -845,9 +974,29 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "Daily Cipher",
         "icon": "fa-calendar-day",
         "color": "warning",
-        "short_description": "A brand new cipher challenge every day. Build your streak!",
-        "long_description": (
-            "Deterministic puzzle based on the calendar date — come back tomorrow for a new one."
+        "short_description": "Daily puzzle — build consecutive-day streaks for bonus XP!",
+        "long_description": "Date-locked challenge. Come back every day to keep streak alive.",
+        "how_to_play": (
+            "1. One deterministic cipher challenge per calendar day.\n"
+            "2. Algorithm badge shows which cipher to use.\n"
+            "3. Hints available (cost score reduction).\n"
+            "4. NO timer — take your time.\n"
+            "5. First correct solve/day → DAILY STREAK +1 and +15 XP bonus.\n\n"
+            "Streak rules:\n"
+            "  • Today solved + yesterday solved → streak +1\n"
+            "  • Miss a day → streak resets to 0 next attempt\n"
+            "  • Streak visible in top stats bar (🔥 icon)"
+        ),
+        "example": (
+            "Daily Cipher #42  ·  2026-08-13  ·  difficulty: MEDIUM\n"
+            "Cipher scheme: Vigenère\n"
+            "Ciphertext: LXFOPVEFRNHR\n\n"
+            "Hints (example):\n"
+            "  • Keyword length: 3\n"
+            "  • Keyword starts with: K\n\n"
+            "Keyword KEY → first letter shift K=10, second E=4, third Y=24 (repeating).\n"
+            "Decrypt with key KEY →  ATTACKATDAWN\n\n"
+            "Correct answer: ATTACKATDAWN"
         ),
         "difficulties": ["Daily"],
         "xp_range": "45 – 155 XP",
@@ -860,15 +1009,44 @@ GAME_CATALOG: Tuple[Dict[str, Any], ...] = (
         "name": "🔥 CRAZY MODE 🔥",
         "icon": "fa-skull-crossbones",
         "color": "danger",
-        "short_description": "Mixed-field chaos! 2 chances. 5 minutes. Fail → SITE GOES CRAZY. Win → CONFETTI VICTORY!",
-        "long_description": (
-            "Random questions from crypto, networking, security, cipher trivia. Only 2 WRONG CHANCES "
-            "and 5 MINUTES on the clock. Every wrong answer inches you closer to a HORRIFIC RED CRASH "
-            "SIMULATION with LOUD horrific sounds. Guess all right → trumpet congratulations + light "
-            "show + site GOES CRAZY with celebration flashes! NOT FOR THE FAINT OF HEART."
+        "short_description": "2 WRONG = HORROR CRASH SIM. ALL CORRECT = TRUMPET CELEBRATION. ☠️",
+        "long_description": "Cyber-legend gauntlet. 5 MCQ rounds. 2 lives. NO HINTS. You have been warned.",
+        "how_to_play": (
+            "⚠️  NOT FOR THE FAINT OF HEART  ⚠️\n\n"
+            "The Gauntlet:\n"
+            "  • 5 mixed-field MCQs (crypto, networking, history, standards, attacks)\n"
+            "  • Lives: ONLY 2. 2 wrong → TERMINAL CRASH SIM triggers.\n"
+            "  • Timer: 5 minutes per question (shared).\n"
+            "  • HINTS: NONE. You either know it or you don't.\n\n"
+            "💀 FAILURE (2 wrong):\n"
+            "  • Full-screen RED flash + screen shake\n"
+            "  • Horror bansuri wails + ghungroo jingles + dholak dread thuds + static blast\n"
+            "  • 💀 emojis rain + terminal CRASH overlay\n"
+            "  • Dissonant siren + white-noise blast + sub-bass THUMP\n\n"
+            "🏆 VICTORY (all 5 correct):\n"
+            "  • Shehnai raga Yaman blessing phrase + tabla tintal theka (21 bols)\n"
+            "  • Manjira tinkle + nagada dholki drum-roll crescendo\n"
+            "  • 280+ particle CONFETTI rainbow burst\n"
+            "  • Rainbow background flashes every 0.4s\n"
+            "  • 'CYBER LEGEND' title unlock + MASSIVE XP payout\n\n"
+            "XP payout: 500 base + 250/correct + 1500 perfect bonus = UP TO 3500 XP"
+        ),
+        "example": (
+            "Question 1/5 · Category: crypto\n"
+            "Which block cipher mode produces IDENTICAL ciphertext for identical plaintext blocks?\n\n"
+            "  A) ECB\n"
+            "  B) CBC\n"
+            "  C) CFB\n"
+            "  D) GCM\n\n"
+            "Reasoning:\n"
+            "  ECB encrypts each block independently with same key.\n"
+            "  Same 16-byte plaintext → same 16-byte ciphertext every time.\n"
+            "  This is the famous 'ECB Penguin' problem.\n"
+            "  CBC/CFB/GCM chain state (IV/counter) → identical plain → different cipher.\n\n"
+            "Correct answer: A) ECB"
         ),
         "difficulties": ["INSANE"],
-        "xp_range": "500 – 2000 XP",
+        "xp_range": "500 – 3500 XP",
         "lives": True,
         "timer": True,
         "hints": False,

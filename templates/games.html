@@ -94,11 +94,15 @@
                 <h6 class="mb-0 text-white">
                     <i class="fas {{ g.icon }} me-2 text-{{ g.color }}"></i>{{ g.name }}
                 </h6>
-                <span class="badge bg-{{ g.color }}-subtle border border-{{ g.color }} text-{{ g.color }}-emphasis rounded-pill">{{ g.xp_range }}</span>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-info rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="How to play · rules &amp; worked example" onclick="openHowToPlayModal('{{ g.id }}')">
+                        <i class="fas fa-info text-info" style="font-size:0.82rem;"></i>
+                    </button>
+                    <span class="badge bg-{{ g.color }}-subtle border border-{{ g.color }} text-{{ g.color }}-emphasis rounded-pill">{{ g.xp_range }}</span>
+                </div>
             </div>
             <div class="card-body d-flex flex-column">
-                <p class="text-light opacity-85 small mb-2">{{ g.short_description }}</p>
-                <p class="text-light opacity-60 small mb-3 flex-grow-1">{{ g.long_description }}</p>
+                <p class="text-light opacity-85 small mb-3 flex-grow-1">{{ g.short_description }}</p>
 
                 <div class="d-flex flex-wrap gap-2 mb-3 small">
                     {% for diff in g.difficulties %}
@@ -147,6 +151,51 @@
         </div>
     </div>
     {% endfor %}
+</div>
+
+<!-- ==========================================================
+     PUBLIC LEADERBOARD — visible to ALL users (no auth needed)
+     ========================================================== -->
+<div class="card bg-dark border border-info glass-card mb-5">
+    <div class="card-header border-info d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <h5 class="mb-0 text-white">
+            <i class="fas fa-trophy me-2 text-warning"></i>
+            <span class="text-info">Global Leaderboard</span>
+            <small class="text-light opacity-60 ms-2">— Top 20 Cyber Warriors</small>
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="refreshLeaderboard()" title="Refresh leaderboard">
+                <i class="fas fa-rotate me-1"></i>Refresh
+            </button>
+            <span class="badge bg-info-subtle border border-info text-info-emphasis rounded-pill">
+                <i class="fas fa-globe me-1"></i>NO LOGIN REQUIRED
+            </span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent;">
+                <thead>
+                    <tr class="border-bottom border-info border-opacity-40">
+                        <th class="text-center px-3 py-3" style="width:60px;">#</th>
+                        <th class="px-3 py-3">Player</th>
+                        <th class="px-3 py-3">Rank</th>
+                        <th class="text-end px-3 py-3">XP</th>
+                        <th class="text-center px-3 py-3">Wins</th>
+                        <th class="text-center px-3 py-3">🔥 Streak</th>
+                        <th class="text-center px-3 py-3">☠️ Crazy Best</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardTbody">
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-light opacity-60">
+                            <i class="fas fa-sync-alt fa-spin me-2"></i>Loading leaderboard…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- ==========================================================
@@ -303,12 +352,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}?v=20260813e">
 <script>
   window.__GAMES_INITIAL = {
-    stats: {{ stats|tojson }},
-    rank: {{ rank|tojson }},
-    ranks: {{ ranks|tojson }},
-    daily: {{ daily|tojson }},
-    games: {{ games|tojson }},
-    leaderboard: {{ leaderboard|tojson|default('[]', true) }}
+    stats: {{ stats|default({}, true)|tojson }},
+    rank: {{ rank|default({}, true)|tojson }},
+    ranks: {{ ranks|default([], true)|tojson }},
+    daily: {{ daily|default({}, true)|tojson }},
+    games: {{ games|default([], true)|tojson }},
+    leaderboard: {{ leaderboard|default([], true)|tojson }}
   };
 
   /* ---------- How-to-Play modal: opens from the (i) button on every game card ---------- */

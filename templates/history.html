@@ -180,14 +180,13 @@
                             }.get(item.algorithm, 'bg-secondary') %}
                             <span class="badge {{ algoClass }} fs-6">{{ item.algorithm }}</span>
                         </td>
-                        <td>
-                            {% set opClass = {
-                                'Encryption':           'text-primary',
-                                'Decryption':           'text-info',
-                                'Hash':                 'text-warning',
-                                'Performance Benchmark':'text-success-emphasis',
-                            }.get(item.operation, 'text-light') %}
-                            <span class="{{ opClass }}">{{ item.operation }}</span>
+                        <td class="operation-cell">
+                            {% set opBadge = {
+                                'Encrypt':  'bg-primary-subtle border border-primary text-primary-emphasis',
+                                'Decrypt':  'bg-info-subtle border border-info text-info-emphasis',
+                                'Hash':     'bg-warning-subtle border border-warning text-warning-emphasis',
+                            }.get(item.operation, 'bg-secondary-subtle border border-secondary text-secondary-emphasis') %}
+                            <span class="badge {{ opBadge }} rounded-pill fs-6">{{ item.operation }}</span>
                         </td>
                         <td class="text-end font-monospace small text-light opacity-85">
                             {% if item.content_length %}

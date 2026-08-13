@@ -520,8 +520,25 @@
                 <tbody>
                     {% for item in history[:5] %}
                     <tr>
-                        <td>{{ item.algorithm }}</td>
-                        <td>{{ item.operation }}</td>
+                        <td>
+                            {% set algoClass = {
+                                'AES-256': 'bg-success',
+                                'DES':     'bg-warning text-dark',
+                                'RSA':     'bg-info',
+                                'SHA-256': 'bg-success',
+                                'SHA-512': 'bg-success',
+                                'MD5':     'bg-warning text-dark',
+                            }.get(item.algorithm, 'bg-secondary') %}
+                            <span class="badge {{ algoClass }}">{{ item.algorithm }}</span>
+                        </td>
+                        <td class="operation-cell">
+                            {% set opBadge = {
+                                'Encrypt':  'bg-primary-subtle border border-primary text-primary-emphasis',
+                                'Decrypt':  'bg-info-subtle border border-info text-info-emphasis',
+                                'Hash':     'bg-warning-subtle border border-warning text-warning-emphasis',
+                            }.get(item.operation, 'bg-secondary-subtle border border-secondary text-secondary-emphasis') %}
+                            <span class="badge {{ opBadge }} rounded-pill">{{ item.operation }}</span>
+                        </td>
                         <td>{{ item.timestamp|int|timestamp_to_str }}</td>
                     </tr>
                     {% endfor %}
